@@ -23,76 +23,111 @@ export const Pagination = Extension.create({
                 },
                 view(editorView) {
                     const checkPagination = () => {
-                        if (!(editorView as any).docView) return;
+                        console.log("Pagination: Checking...");
+
+                        // docView check removed to avoid blocking invocation
+                        // if (!(editorView as any).docView) return; 
 
                         const decorations: Decoration[] = [];
-                        const PAGE_HEIGHT_PX = 1056; // 11in x 96dpi
-                        const PAGE_MARGIN_BOTTOM = 40;
-                        const PAGE_MARGIN_TOP = 40;
-                        const TOTAL_PAGE_CONTENT_HEIGHT = PAGE_HEIGHT_PX - PAGE_MARGIN_TOP - PAGE_MARGIN_BOTTOM;
+
+                        const PAGE_HEIGHT_PX = 1123;
+                        const PAGE_MARGIN_TOP = 96;
+                        const PAGE_MARGIN_BOTTOM = 96;
+
+                        const MAX_CONTENT_HEIGHT = PAGE_HEIGHT_PX - (PAGE_MARGIN_TOP + PAGE_MARGIN_BOTTOM);
 
                         const editorDom = editorView.dom;
                         const editorRect = editorDom.getBoundingClientRect();
-                        const docTop = editorRect.top;
 
+                        let accumulatedHeight = 0;
                         let pageNumber = 1;
 
+                        const firstPageIndicator = document.createElement('div');
+                        firstPageIndicator.className = 'page-indicator page-indicator-first';
+
+                        const firstPageBadge = document.createElement('span');
+                        firstPageBadge.className = 'page-badge';
+                        firstPageBadge.textContent = 'Page 1';
+                        firstPageIndicator.appendChild(firstPageBadge);
+
+                        // Always add Page 1 indicator
+                        decorations.push(Decoration.widget(0, firstPageIndicator, { side: -1 }));
+                        console.log("Pagination: Added Page 1 indicator widget to list. Total decorations:", decorations.length);
+
+                        let nodeCount = 0;
                         editorView.state.doc.forEach((node, pos) => {
+                            nodeCount++;
                             const domNode = editorView.nodeDOM(pos) as HTMLElement;
-                            if (!domNode || !(domNode instanceof HTMLElement)) return;
+
+                            if (!domNode) {
+                                // This happens for text nodes typically, but doc.forEach iterates blocks?
+                                // Actually doc.forEach iterates direct children. If they are paragraphs, they have DOM.
+                                // If they are not rendered yet, it might be null.
+                                // console.log("Pagination: No DOM node for pos", pos);
+                                return;
+                            }
+                            if (!(domNode instanceof HTMLElement)) return;
 
                             const rect = domNode.getBoundingClientRect();
-                            const nodeHeight = rect.height;
-                            const relativeTop = rect.top - docTop;
-                            const relativeBottom = relativeTop + nodeHeight;
+                            const nodeVisualHeight = rect.height;
 
-                            const boundary = pageNumber * PAGE_HEIGHT_PX - PAGE_MARGIN_BOTTOM;
+                            const style = window.getComputedStyle(domNode);
+                            const marginTop = parseFloat(style.marginTop) || 0;
+                            const marginBottom = parseFloat(style.marginBottom) || 0;
 
-                            if (relativeBottom > boundary) {
-                                if (nodeHeight < TOTAL_PAGE_CONTENT_HEIGHT) {
-                                    const breakElement = document.createElement('div');
-                                    breakElement.className = 'page-break';
-                                    breakElement.setAttribute('data-page-number', (pageNumber + 1).toString());
+                            const totalNodeHeight = nodeVisualHeight + marginTop + marginBottom;
 
-                                    decorations.push(Decoration.widget(pos, breakElement, { side: -1 }));
+                            if (accumulatedHeight + totalNodeHeight > MAX_CONTENT_HEIGHT) {
+                                console.log(`Pagination: Break needed at pos ${pos}. Acc: ${accumulatedHeight}, Node: ${totalNodeHeight}`);
+                                const breakElement = document.createElement('div');
+                                breakElement.className = 'page-break';
 
-                                    pageNumber++;
-                                } else {
-                                    const pagesSpanned = Math.ceil(nodeHeight / PAGE_HEIGHT_PX);
-                                    pageNumber += pagesSpanned;
-                                }
+                                const pageBadge = document.createElement('span');
+                                pageBadge.className = 'page-badge';
+                                pageBadge.textContent = `Page ${pageNumber + 1}`;
+                                breakElement.appendChild(pageBadge);
+
+                                decorations.push(Decoration.widget(pos, breakElement, { side: -1 }));
+
+                                accumulatedHeight = totalNodeHeight;
+                                pageNumber++;
+                            } else {
+                                accumulatedHeight += totalNodeHeight;
                             }
                         });
+                        console.log(`Pagination: Processed ${nodeCount} nodes. Total decorations: ${decorations.length}`);
 
                         const pluginKey = this.key;
                         if (!pluginKey) return;
 
-                        const pluginState = pluginKey.getState(editorView.state);
-                        // Rudimentary optimization
-                        if (pluginState && pluginState.find().length === decorations.length) {
-                            // pass
-                        }
+                        // Force dispatch
+                        if (editorView.isDestroyed) return;
 
-                        requestAnimationFrame(() => {
-                            if (editorView.isDestroyed) return;
-                            const action = { type: 'SET_DECORATIONS', decorations };
-                            editorView.dispatch(editorView.state.tr.setMeta(pluginKey, action));
-                        });
+                        console.log("Pagination: Dispatching transaction with decorations.");
+                        const tr = editorView.state.tr.setMeta(pluginKey, { type: 'SET_DECORATIONS', decorations });
+                        editorView.dispatch(tr);
                     };
 
-                    const debouncedCheck = debounce(checkPagination, 50);
+                    // Direct call for debugging, no debounce
+                    const debouncedCheck = checkPagination;
 
-                    requestAnimationFrame(debouncedCheck);
+                    setTimeout(debouncedCheck, 100);
 
                     return {
                         update(view, prevState) {
                             if (!view.state.doc.eq(prevState.doc)) {
+                                console.log("Pagination: Doc changed, running check.");
                                 debouncedCheck();
                             }
                         },
                         destroy() { }
                     };
-                }
+                },
+                props: {
+                    decorations(state) {
+                        return (this as any).getState(state);
+                    },
+                },
             }),
         ];
     },

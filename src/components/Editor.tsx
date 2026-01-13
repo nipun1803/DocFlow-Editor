@@ -8,7 +8,7 @@ import { Pagination } from "../extensions/pagination-extension";
 import { Color } from "@tiptap/extension-color";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { FontSize } from "../extensions/FontSize";
-import Table from "@tiptap/extension-table";
+import { Table } from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
 import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
@@ -57,17 +57,17 @@ export default function DocumentEditor() {
     `,
     editorProps: {
       attributes: {
-        class: "focus:outline-none min-h-[1123px] px-[96px] py-[96px] prose prose-sm max-w-none",
+        class: "focus:outline-none min-h-[1123px] prose prose-sm max-w-none",
       },
     },
   });
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-200">
+    <div className="flex flex-col min-h-screen" style={{ backgroundColor: 'var(--background)' }}>
       <Toolbar editor={editor} />
-      <div className="flex-1 overflow-auto py-8 print:p-0">
+      <div className="flex-1 overflow-auto py-12 print:p-0">
         <div className="editor-pages mx-auto">
-          <div className="page bg-white shadow-2xl print:shadow-none print:border-none">
+          <div className="page print:shadow-none print:border-none">
             <EditorContent editor={editor} />
           </div>
         </div>
