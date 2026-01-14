@@ -8,12 +8,15 @@ import { Pagination } from "../extensions/pagination-extension";
 import { Color } from "@tiptap/extension-color";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { FontSize } from "../extensions/FontSize";
+import { FontFamily } from "../extensions/FontFamily";
 import { Table } from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
 import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
 import { Toolbar } from "./Toolbar";
-import "../styles/editor.css";
+import TaskItem from "@tiptap/extension-task-item";
+import TaskList from "@tiptap/extension-task-list";
+
 
 export default function DocumentEditor() {
   const editor = useEditor({
@@ -23,6 +26,10 @@ export default function DocumentEditor() {
           levels: [1, 2, 3],
         },
       }),
+      TaskList,
+      TaskItem.configure({
+        nested: true,
+      }),
       Underline,
       TextAlign.configure({
         types: ["heading", "paragraph"],
@@ -31,6 +38,7 @@ export default function DocumentEditor() {
       TextStyle,
       Color,
       FontSize,
+      FontFamily,
       Table.configure({
         resizable: true,
       }),

@@ -2,145 +2,233 @@ import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 
+/**
+ * A4 Page Configuration
+ * A4: 210mm x 297mm at 96 DPI = 794px x 1123px
+ * Standard margins: 1 inch (96px) on all sides
+ * Content area: 602px width x 931px height
+ */
+const PAGE_CONFIG = {
+    // Full page dimensions
+    pageHeightPx: 1123,
+    pageWidthPx: 794,
+    // Margins (1 inch = 96px at 96 DPI)
+    marginPx: 96,
+    // Visual gap between pages in editor
+    pageGapPx: 24,
+};
+
+// Content height available per page (page height minus top and bottom margins)
+const CONTENT_HEIGHT_PER_PAGE = PAGE_CONFIG.pageHeightPx - (PAGE_CONFIG.marginPx * 2);
+
+// Create a debounce function
+function debounce<T extends (...args: unknown[]) => void>(fn: T, delay: number): T {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    return ((...args: Parameters<T>) => {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+        timeoutId = setTimeout(() => fn(...args), delay);
+    }) as T;
+}
+
+const paginationPluginKey = new PluginKey("pagination");
+
 export const Pagination = Extension.create({
     name: "pagination",
 
     addProseMirrorPlugins() {
         return [
             new Plugin({
-                key: new PluginKey("pagination"),
+                key: paginationPluginKey,
+
                 state: {
                     init() {
                         return DecorationSet.empty;
                     },
-                    apply(tr, value) {
-                        const action = tr.getMeta(this as any);
-                        if (action && action.type === 'SET_DECORATIONS') {
-                            return DecorationSet.create(tr.doc, action.decorations);
+                    apply(tr, oldSet) {
+                        const meta = tr.getMeta(paginationPluginKey);
+                        if (meta && meta.decorations) {
+                            return meta.decorations;
                         }
-                        return value.map(tr.mapping, tr.doc);
+                        return oldSet.map(tr.mapping, tr.doc);
                     },
                 },
+
+                props: {
+                    decorations(state) {
+                        return paginationPluginKey.getState(state);
+                    },
+                },
+
                 view(editorView) {
-                    const checkPagination = () => {
-                        console.log("Pagination: Checking...");
+                    let isProcessing = false;
+                    let pendingUpdate = false;
 
-                        // docView check removed to avoid blocking invocation
-                        // if (!(editorView as any).docView) return; 
+                    const updatePagination = () => {
+                        if (isProcessing) {
+                            pendingUpdate = true;
+                            return;
+                        }
 
-                        const decorations: Decoration[] = [];
-
-                        const PAGE_HEIGHT_PX = 1123;
-                        const PAGE_MARGIN_TOP = 96;
-                        const PAGE_MARGIN_BOTTOM = 96;
-
-                        const MAX_CONTENT_HEIGHT = PAGE_HEIGHT_PX - (PAGE_MARGIN_TOP + PAGE_MARGIN_BOTTOM);
-
-                        const editorDom = editorView.dom;
-                        const editorRect = editorDom.getBoundingClientRect();
-
-                        let accumulatedHeight = 0;
-                        let pageNumber = 1;
-
-                        const firstPageIndicator = document.createElement('div');
-                        firstPageIndicator.className = 'page-indicator page-indicator-first';
-
-                        const firstPageBadge = document.createElement('span');
-                        firstPageBadge.className = 'page-badge';
-                        firstPageBadge.textContent = 'Page 1';
-                        firstPageIndicator.appendChild(firstPageBadge);
-
-                        // Always add Page 1 indicator
-                        decorations.push(Decoration.widget(0, firstPageIndicator, { side: -1 }));
-                        console.log("Pagination: Added Page 1 indicator widget to list. Total decorations:", decorations.length);
-
-                        let nodeCount = 0;
-                        editorView.state.doc.forEach((node, pos) => {
-                            nodeCount++;
-                            const domNode = editorView.nodeDOM(pos) as HTMLElement;
-
-                            if (!domNode) {
-                                // This happens for text nodes typically, but doc.forEach iterates blocks?
-                                // Actually doc.forEach iterates direct children. If they are paragraphs, they have DOM.
-                                // If they are not rendered yet, it might be null.
-                                // console.log("Pagination: No DOM node for pos", pos);
-                                return;
-                            }
-                            if (!(domNode instanceof HTMLElement)) return;
-
-                            const rect = domNode.getBoundingClientRect();
-                            const nodeVisualHeight = rect.height;
-
-                            const style = window.getComputedStyle(domNode);
-                            const marginTop = parseFloat(style.marginTop) || 0;
-                            const marginBottom = parseFloat(style.marginBottom) || 0;
-
-                            const totalNodeHeight = nodeVisualHeight + marginTop + marginBottom;
-
-                            if (accumulatedHeight + totalNodeHeight > MAX_CONTENT_HEIGHT) {
-                                console.log(`Pagination: Break needed at pos ${pos}. Acc: ${accumulatedHeight}, Node: ${totalNodeHeight}`);
-                                const breakElement = document.createElement('div');
-                                breakElement.className = 'page-break';
-
-                                const pageBadge = document.createElement('span');
-                                pageBadge.className = 'page-badge';
-                                pageBadge.textContent = `Page ${pageNumber + 1}`;
-                                breakElement.appendChild(pageBadge);
-
-                                decorations.push(Decoration.widget(pos, breakElement, { side: -1 }));
-
-                                accumulatedHeight = totalNodeHeight;
-                                pageNumber++;
-                            } else {
-                                accumulatedHeight += totalNodeHeight;
-                            }
-                        });
-                        console.log(`Pagination: Processed ${nodeCount} nodes. Total decorations: ${decorations.length}`);
-
-                        const pluginKey = this.key;
-                        if (!pluginKey) return;
-
-                        // Force dispatch
                         if (editorView.isDestroyed) return;
 
-                        console.log("Pagination: Dispatching transaction with decorations.");
-                        const tr = editorView.state.tr.setMeta(pluginKey, { type: 'SET_DECORATIONS', decorations });
-                        editorView.dispatch(tr);
+                        isProcessing = true;
+
+                        // Use requestAnimationFrame to ensure DOM is ready
+                        requestAnimationFrame(() => {
+                            if (editorView.isDestroyed) {
+                                isProcessing = false;
+                                return;
+                            }
+
+                            try {
+                                const decorations = calculatePageBreaks(editorView);
+                                const decorationSet = DecorationSet.create(editorView.state.doc, decorations);
+
+                                // Ensure the container has enough height to show full pages for the last page
+                                const pageContainer = editorView.dom.closest('.page') as HTMLElement;
+                                if (pageContainer) {
+                                    const breakCount = decorations.filter(d => d.spec.key && d.spec.key.toString().startsWith('page-break')).length;
+                                    const pageCount = breakCount + 1;
+                                    // 1123px per page + 24px gap. 
+                                    // Note: we use 1147 to match the repeating gradient (1123 white + 24 transparent gap)
+                                    // If we are on page 2, we want at least 1147 + 1123 height ?
+                                    // 1 Page: 1123.
+                                    // 2 Pages: 1123 + 24 + 1123.
+                                    const minHeight = pageCount * 1123 + (pageCount - 1) * 24;
+                                    pageContainer.style.minHeight = `${minHeight}px`;
+                                }
+
+                                const tr = editorView.state.tr.setMeta(paginationPluginKey, {
+                                    decorations: decorationSet,
+                                });
+                                tr.setMeta("addToHistory", false);
+                                editorView.dispatch(tr);
+                            } catch (e) {
+                                console.error("Pagination error:", e);
+                            } finally {
+                                isProcessing = false;
+
+                                if (pendingUpdate) {
+                                    pendingUpdate = false;
+                                    updatePagination();
+                                }
+                            }
+                        });
                     };
 
-                    // Direct call for debugging, no debounce
-                    const debouncedCheck = checkPagination;
+                    const debouncedUpdate = debounce(updatePagination, 100);
 
-                    setTimeout(debouncedCheck, 100);
+                    // Initial update
+                    setTimeout(updatePagination, 150);
 
                     return {
                         update(view, prevState) {
                             if (!view.state.doc.eq(prevState.doc)) {
-                                console.log("Pagination: Doc changed, running check.");
-                                debouncedCheck();
+                                debouncedUpdate();
                             }
                         },
-                        destroy() { }
+                        destroy() {
+                            // Cleanup
+                        },
                     };
-                },
-                props: {
-                    decorations(state) {
-                        return (this as any).getState(state);
-                    },
                 },
             }),
         ];
     },
 });
 
-function debounce(func: any, wait: number) {
-    let timeout: any;
-    return function executedFunction(...args: any[]) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
+/**
+ * Calculate page breaks based on content height
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function calculatePageBreaks(editorView: any): Decoration[] {
+    const decorations: Decoration[] = [];
+    const editorDom = editorView.dom as HTMLElement;
+
+    if (!editorDom) return decorations;
+
+    const editorRect = editorDom.getBoundingClientRect();
+    const editorTop = editorRect.top;
+
+    // Track accumulated content height
+    let accumulatedHeight = 0;
+    let currentPage = 1;
+
+    // Add Page 1 indicator at the very start
+    decorations.push(
+        Decoration.widget(0, createPageIndicator(1, true), {
+            side: -1,
+            key: "page-1-indicator",
+        })
+    );
+
+    // Iterate through top-level nodes
+    editorView.state.doc.forEach((node: unknown, pos: number) => {
+        const domNode = editorView.nodeDOM(pos) as HTMLElement | null;
+        if (!domNode) return;
+
+        const nodeRect = domNode.getBoundingClientRect();
+        const nodeHeight = nodeRect.height;
+
+        // Get computed margins
+        const computedStyle = window.getComputedStyle(domNode);
+        const marginTop = parseFloat(computedStyle.marginTop) || 0;
+        const marginBottom = parseFloat(computedStyle.marginBottom) || 0;
+        const totalNodeHeight = nodeHeight + marginTop + marginBottom;
+
+        // Check if adding this node would exceed current page
+        if (accumulatedHeight > 0 && accumulatedHeight + totalNodeHeight > CONTENT_HEIGHT_PER_PAGE) {
+            // Insert page break before this node
+            currentPage++;
+
+            decorations.push(
+                Decoration.widget(pos, createPageBreak(currentPage), {
+                    side: -1,
+                    key: `page-break-${currentPage}`,
+                })
+            );
+
+            // Reset accumulated height for new page
+            accumulatedHeight = totalNodeHeight;
+        } else {
+            accumulatedHeight += totalNodeHeight;
+        }
+    });
+
+    return decorations;
+}
+
+/**
+ * Create a page indicator element (for Page 1)
+ */
+function createPageIndicator(pageNum: number, isFirst: boolean): HTMLElement {
+    const indicator = document.createElement("div");
+    indicator.className = `page-indicator ${isFirst ? "page-indicator-first" : ""}`;
+    indicator.contentEditable = "false";
+
+    const badge = document.createElement("span");
+    badge.className = "page-badge";
+    badge.textContent = `Page ${pageNum}`;
+    indicator.appendChild(badge);
+
+    return indicator;
+}
+
+/**
+ * Create a page break element with visual separation
+ */
+function createPageBreak(pageNum: number): HTMLElement {
+    const breakContainer = document.createElement("div");
+    breakContainer.className = "page-break";
+    breakContainer.contentEditable = "false";
+
+    // Create the page badge
+    const badge = document.createElement("span");
+    badge.className = "page-badge";
+    badge.textContent = `Page ${pageNum}`;
+    breakContainer.appendChild(badge);
+
+    return breakContainer;
 }

@@ -24,8 +24,10 @@ import {
     Table as TableIcon,
     Palette,
     Type,
+    CaseSensitive,
 } from "lucide-react";
 import { useCallback, useState } from "react";
+import { FONT_FAMILIES } from "../extensions/FontFamily";
 
 interface ToolbarProps {
     editor: Editor | null;
@@ -58,6 +60,7 @@ const PAGE_SIZES = [
 export function Toolbar({ editor }: ToolbarProps) {
     const [currentColor, setCurrentColor] = useState("#000000");
     const [currentFontSize, setCurrentFontSize] = useState("12pt");
+    const [currentFontFamily, setCurrentFontFamily] = useState("");
     const [currentPageSize, setCurrentPageSize] = useState("a4");
 
     const handleColorChange = useCallback(
@@ -74,6 +77,19 @@ export function Toolbar({ editor }: ToolbarProps) {
             const size = e.target.value;
             setCurrentFontSize(size);
             editor?.chain().focus().setFontSize(size).run();
+        },
+        [editor]
+    );
+
+    const handleFontFamilyChange = useCallback(
+        (e: React.ChangeEvent<HTMLSelectElement>) => {
+            const family = e.target.value;
+            setCurrentFontFamily(family);
+            if (family) {
+                editor?.chain().focus().setFontFamily(family).run();
+            } else {
+                editor?.chain().focus().unsetFontFamily().run();
+            }
         },
         [editor]
     );
@@ -155,6 +171,25 @@ export function Toolbar({ editor }: ToolbarProps) {
                     >
                         <Redo2 size={18} />
                     </ToolbarButton>
+                </div>
+
+                <Divider />
+
+                {/* Font Family */}
+                <div className="flex items-center gap-1">
+                    <CaseSensitive size={16} className="text-slate-500" />
+                    <select
+                        value={currentFontFamily}
+                        onChange={handleFontFamilyChange}
+                        className="h-9 px-2 text-sm bg-white border border-slate-300 rounded-md hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer min-w-[120px]"
+                        title="Font Family"
+                    >
+                        {FONT_FAMILIES.map((font) => (
+                            <option key={font.label} value={font.value}>
+                                {font.label}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 <Divider />
