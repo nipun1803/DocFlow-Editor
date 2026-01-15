@@ -2,6 +2,11 @@ import { Extension } from "@tiptap/core";
 
 export const FONT_FAMILIES = [
     { label: "Inter", value: "Inter" },
+    { label: "Roboto", value: "Roboto" },
+    { label: "Open Sans", value: "Open Sans" },
+    { label: "Lato", value: "Lato" },
+    { label: "Montserrat", value: "Montserrat" },
+    { label: "Poppins", value: "Poppins" },
     { label: "Arial", value: "Arial" },
     { label: "Helvetica", value: "Helvetica" },
     { label: "Times New Roman", value: "Times New Roman" },

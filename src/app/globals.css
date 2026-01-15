@@ -6,62 +6,59 @@
 }
 
 :root {
-  --background: #f3f4f6;
-  /* Gray background */
-  --foreground: #1e293b;
-  --page-width: 210mm;
-  --page-height: 297mm;
-  --page-margin: 25.4mm;
-  /* 1 inch */
-  --column-gap: 24px;
+
+  --workspace-bg: #f8f9fa;
+  --foreground:  #1e293b;
+  /* dimension of a4 */
+  --page-width: 794px;
+  --page-height: 1123px;
+  --page-margin-top: 96px;
+  --page-margin-bottom: 96px;
+  --page-margin-side: 96px;
+  --page-gap: 40px;
 }
 
 body {
   color: var(--foreground);
-  background: var(--background);
+  background:  var(--workspace-bg);
   font-family: var(--font-sans);
   margin: 0;
 }
 
-/* ============================================
-   EDITOR CONTAINER & PAGE
-   ============================================ */
 
 .editor-pages {
   width: var(--page-width);
   margin: 0 auto;
-  padding: 60px 0;
+  padding: 64px 0;
   display: flex;
   flex-direction: column;
 }
 
 .page {
-  width: var(--page-width);
-  min-height: var(--page-height);
+  width: 100%;
   background: white;
   position: relative;
-  /* Outer shadow for the whole "document" container */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  padding: var(--page-margin);
-  padding-bottom: 96px;
+  overflow: visible;
+  box-shadow: 
+    0 1px 1px rgba(0, 0, 0, 0.05),
+    0 2px 2px rgba(0, 0, 0, 0.05),
+    0 4px 4px rgba(0, 0, 0, 0.05),
+    0 8px 8px rgba(0, 0, 0, 0.05);
+  padding: var(--page-margin-top) var(--page-margin-side) var(--page-margin-bottom);
   box-sizing: border-box;
 }
 
-/* ============================================
-   PROSEMIRROR STYLES (Content)
-   ============================================ */
 
 .ProseMirror {
   outline: none;
-  min-height: 100%;
+  min-height: calc(var(--page-height) - var(--page-margin-top) - var(--page-margin-bottom));
   font-family: 'Times New Roman', Times, serif;
   font-size: 12pt;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .ProseMirror p {
-  margin: 0;
-  margin-bottom: 0.5em;
+  margin: 0 0 0.5em 0;
 }
 
 .ProseMirror h1,
@@ -72,24 +69,33 @@ body {
   font-family: 'Arial', sans-serif;
 }
 
-/* 
-  Fix for inconsistent start/end margins:
-  Remove top margin from the first element so it respects the page padding (96px).
-  Remove bottom margin from the last element so it respects the page padding (96px).
-  Intermediate margins collapse with page-break margins correctly.
-*/
-.ProseMirror>*:first-child {
+.ProseMirror h1 {
+  font-size:  24pt;
+  font-weight: bold;
+}
+
+.ProseMirror h2 {
+  font-size: 18pt;
+  font-weight: bold;
+}
+
+.ProseMirror h3 {
+  font-size: 14pt;
+  font-weight: bold;
+}
+
+.ProseMirror > *:first-child {
   margin-top: 0;
 }
 
-.ProseMirror>*:last-child {
+.ProseMirror > *:last-child {
   margin-bottom: 0;
 }
 
-/* Lists */
+
 .ProseMirror ul {
-  list-style-type: disc;
-  padding-left: 1.5em;
+  list-style-type:  disc;
+  padding-left:  1.5em;
   margin-bottom: 0.5em;
 }
 
@@ -103,32 +109,50 @@ body {
   margin-bottom: 0.25em;
 }
 
-/* Tasks */
+
 ul[data-type="taskList"] {
-  list-style: none;
-  padding: 0;
+  list-style:  none;
+  padding:  0;
 }
 
 ul[data-type="taskList"] li {
   display: flex;
 }
 
-ul[data-type="taskList"] li>label {
+ul[data-type="taskList"] li > label {
   flex: 0 0 auto;
   margin-right: 0.5rem;
   user-select: none;
 }
 
-ul[data-type="taskList"] li>div {
+ul[data-type="taskList"] li > div {
   flex: 1 1 auto;
 }
 
-/* Tables */
+
+.ProseMirror blockquote {
+  border-left: 3px solid #d1d5db;
+  padding-left: 1em;
+  margin-left: 0;
+  font-style: italic;
+  color: #6b7280;
+}
+
+
+.ProseMirror code {
+  background-color: #f3f4f6;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+
 .ProseMirror table {
   border-collapse: collapse;
   table-layout: fixed;
   width: 100%;
-  margin: 0;
+  margin:  1em 0;
   overflow: hidden;
 }
 
@@ -136,7 +160,7 @@ ul[data-type="taskList"] li>div {
 .ProseMirror th {
   min-width: 1em;
   border: 2px solid #ced4da;
-  padding: 3px 5px;
+  padding: 8px;
   vertical-align: top;
   box-sizing: border-box;
   position: relative;
@@ -154,166 +178,114 @@ ul[data-type="taskList"] li>div {
   content: "";
   left: 0;
   right: 0;
-  top: 0;
+  top:  0;
   bottom: 0;
-  background: rgba(200, 200, 255, 0.4);
+  background:  rgba(200, 200, 255, 0.4);
   pointer-events: none;
 }
 
-/* ============================================
-   PAGINATION INDICATORS
-   ============================================ */
-
-/* ============================================
-   PAGINATION INDICATORS
-   ============================================ */
-
-.page-break {
-  /* 
-     Robust Box Model Strategy:
-     Total Height = 216px.
-     - Top 96px: Transparent (Visual Bottom Margin of Page N)
-     - Middle 24px: Gray Bar (Visual Gap)
-     - Bottom 96px: Transparent (Visual Top Margin of Page N+1)
-     
-     Using explicit height prevents margin collapsing issues.
-  */
+/* pagination */
+.page-break-container {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 216px;
+  flex-direction: column;
   position: relative;
-
-  /* Remove vertical margins as they are built into the height */
+  z-index: 10;
+  width: calc(100% + var(--page-margin-side) * 2);
+  margin-left: calc(-1 * var(--page-margin-side));
+  margin-right: calc(-1 * var(--page-margin-side));
   margin-top: 0;
-  margin-bottom: 0;
-
-  /* Extend to cover side margins */
-  margin-left: calc(-1 * var(--page-margin));
-  margin-right: calc(-1 * var(--page-margin));
-
+  margin-bottom:  0;
   user-select: none;
   pointer-events: none;
-  clear: both;
 }
 
-/* The Gray Gap Bar */
-.page-break::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 24px;
-  background: var(--background);
-  transform: translateY(-50%);
-
-  /* Inner shadows for depth */
-  box-shadow:
-    inset 0 2px 4px rgba(0, 0, 0, 0.1),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.05);
-
-  z-index: 0;
-}
-
-.page-badge {
-  position: relative;
-  z-index: 1;
-  /* Sit above the gray bar */
-
-  color: #6b7280;
-  font-size: 12px;
-  font-weight: 500;
-  font-family: sans-serif;
+.page-footer {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: white;
-  padding: 2px 8px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  position: relative;
+  box-shadow: 0 2px 4px rgba(60, 64, 67, 0.15);
 }
 
-/* Page 1 Indicator - Usually hidden or shown at top? */
-.page-indicator {
-  position: absolute;
-  top: -30px;
-  right: 0;
-  color: #9ca3af;
-  font-size: 12px;
-  font-family: sans-serif;
+.page-gap {
+  height: var(--page-gap);
+  background: #e8eaed;
+  position: relative;
+  z-index: 5;
+  box-shadow: 
+    inset 0 3px 6px rgba(0, 0, 0, 0.1),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.05);
 }
 
-/* 
-   Wait, the user wants "Page number NOT incorrectly placed".
-   Often, users expect page numbers in the footer.
-   The current implementation puts them in the break gap. 
-   To put them "in the page", we'd need fixed footers per A4 block.
-   Tiptap/ProseMirror is a continuous flow editor. It doesn't actually have "pages" unless we wrap content.
-   My current approach (and the accepted one) creates a continuous strip and simulates pages.
-   
-   The .page container has `position: relative`.
-   But the content inside grows.
-   
-   Let's ensure the print layout is perfect.
-*/
+.page-header-space {
+  height: 24px;
+  background: white;
+  box-shadow:  0 -2px 4px rgba(60, 64, 67, 0.1);
+}
+
+.page-number {
+  font-size: 11px;
+  font-weight: 400;
+  font-family: Arial, sans-serif;
+  color: #5f6368;
+}
+
+.page-footer-final {
+  width: calc(100% + var(--page-margin-side) * 2);
+  margin-left: calc(-1 * var(--page-margin-side));
+  margin-right: calc(-1 * var(--page-margin-side));
+  margin-top: auto;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  user-select: none;
+  pointer-events: none;
+}
 
 
-/* ============================================
-   PRINT STYLES
-   ============================================ */
 
 @media print {
   @page {
     size: A4;
-    margin: 25.4mm;
+    margin: 1in;
   }
 
   body {
     background: white;
     margin: 0;
-    -webkit-print-color-adjust: exact;
+    -webkit-print-color-adjust:  exact;
     print-color-adjust: exact;
   }
 
   .editor-pages {
     width: 100%;
-    margin: 0;
+    margin:  0;
     padding: 0;
-    gap: 0;
-    display: block;
-    /* Remove flex to let flow naturally */
   }
 
   .page {
     width: 100%;
-    height: auto;
-    min-height: 0;
-    background: none !important;
-    filter: none !important;
     box-shadow: none;
-    margin: 0;
     padding: 0;
-    /* Margins handled by @page */
-    border: none;
-    overflow: visible;
+    margin:  0;
   }
 
-  /* Hide the gray gap in print */
-  .page-break {
-    display: block;
+  .page-break-container {
     height: 0;
-    margin: 0;
-    border: none;
-    background: transparent;
+    overflow: hidden;
     visibility: hidden;
-    /* Hide the badge */
-
-    /* Crucial for printing paging */
     break-after: page;
     page-break-after: always;
   }
 
-  /* Hide UI elements */
-  .page-indicator {
+  .page-footer,
+  .page-gap,
+  .page-header-space,
+  .page-footer-final {
     display: none;
   }
 }
