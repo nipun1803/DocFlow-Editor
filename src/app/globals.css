@@ -6,264 +6,292 @@
 }
 
 :root {
-
-  --workspace-bg: #f8f9fa;
-  --foreground:  #1e293b;
-  /* dimension of a4 */
+  --workspace-bg: #f9fafb;
+  --foreground: #1d1d1f;
+  --border-subtle: #d2d2d7;
+  --accent-primary: #007aff;
+  --accent-hover:  #0051d5;
   --page-width: 794px;
-  --page-height: 1123px;
+  --page-height:  1123px;
   --page-margin-top: 96px;
   --page-margin-bottom: 96px;
-  --page-margin-side: 96px;
-  --page-gap: 40px;
+  --page-margin-side:  96px;
+  --page-gap: 20px;
+  --shadow-paper: 
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    0 2px 4px rgba(0, 0, 0, 0.05),
+    0 4px 8px rgba(0, 0, 0, 0.04);
 }
 
 body {
   color: var(--foreground);
-  background:  var(--workspace-bg);
+  background: var(--workspace-bg);
   font-family: var(--font-sans);
   margin: 0;
+  -webkit-font-smoothing:  antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* ============================================
+   EDITOR CONTAINER & PAGE
+   ============================================ */
 
 .editor-pages {
-  width: var(--page-width);
+  width:  var(--page-width);
   margin: 0 auto;
-  padding: 64px 0;
+  padding: 48px 0 128px 0;
   display: flex;
   flex-direction: column;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .page {
   width: 100%;
   background: white;
   position: relative;
-  overflow: visible;
-  box-shadow: 
-    0 1px 1px rgba(0, 0, 0, 0.05),
-    0 2px 2px rgba(0, 0, 0, 0.05),
-    0 4px 4px rgba(0, 0, 0, 0.05),
-    0 8px 8px rgba(0, 0, 0, 0.05);
+  overflow:  visible;
+  box-shadow:  var(--shadow-paper);
   padding: var(--page-margin-top) var(--page-margin-side) var(--page-margin-bottom);
   box-sizing: border-box;
+  margin-bottom: var(--page-gap);
 }
 
+/* ============================================
+   PROSEMIRROR CONTENT STYLES
+   ============================================ */
 
 .ProseMirror {
   outline: none;
-  min-height: calc(var(--page-height) - var(--page-margin-top) - var(--page-margin-bottom));
-  font-family: 'Times New Roman', Times, serif;
+  position:  relative;
+  min-height:  calc(var(--page-height) - var(--page-margin-top) - var(--page-margin-bottom));
+  font-family: "Georgia", "Times New Roman", serif;
   font-size: 12pt;
   line-height: 1.6;
+  color: var(--foreground);
 }
 
 .ProseMirror p {
-  margin: 0 0 0.5em 0;
-}
-
-.ProseMirror h1,
-.ProseMirror h2,
-.ProseMirror h3 {
-  margin-top: 1em;
-  margin-bottom: 0.5em;
-  font-family: 'Arial', sans-serif;
+  margin: 0 0 0.75em 0;
 }
 
 .ProseMirror h1 {
-  font-size:  24pt;
-  font-weight: bold;
+  font-size: 28pt;
+  line-height: 1.2;
+  margin: 1.5em 0 0.5em 0;
+  font-weight: 600;
+  color: #1d1d1f;
 }
 
 .ProseMirror h2 {
-  font-size: 18pt;
-  font-weight: bold;
+  font-size: 20pt;
+  line-height: 1.3;
+  margin: 1.5em 0 0.5em 0;
+  font-weight: 600;
+  color: #1d1d1f;
 }
 
 .ProseMirror h3 {
-  font-size: 14pt;
-  font-weight: bold;
+  font-size: 16pt;
+  line-height:  1.4;
+  margin: 1.5em 0 0.5em 0;
+  font-weight: 600;
+  color: #1d1d1f;
 }
 
-.ProseMirror > *:first-child {
-  margin-top: 0;
-}
-
-.ProseMirror > *:last-child {
-  margin-bottom: 0;
-}
-
-
-.ProseMirror ul {
-  list-style-type:  disc;
-  padding-left:  1.5em;
-  margin-bottom: 0.5em;
-}
-
+.ProseMirror ul,
 .ProseMirror ol {
-  list-style-type: decimal;
-  padding-left: 1.5em;
-  margin-bottom: 0.5em;
+  padding-left: 1.75em;
+  margin: 0.75em 0;
 }
 
 .ProseMirror li {
-  margin-bottom: 0.25em;
+  margin-bottom: 0.35em;
 }
-
-
-ul[data-type="taskList"] {
-  list-style:  none;
-  padding:  0;
-}
-
-ul[data-type="taskList"] li {
-  display: flex;
-}
-
-ul[data-type="taskList"] li > label {
-  flex: 0 0 auto;
-  margin-right: 0.5rem;
-  user-select: none;
-}
-
-ul[data-type="taskList"] li > div {
-  flex: 1 1 auto;
-}
-
 
 .ProseMirror blockquote {
-  border-left: 3px solid #d1d5db;
-  padding-left: 1em;
-  margin-left: 0;
+  border-left: 3px solid var(--accent-primary);
+  padding-left: 1.25em;
+  margin: 1em 0;
   font-style: italic;
-  color: #6b7280;
+  color:  #6e6e73;
 }
-
 
 .ProseMirror code {
-  background-color: #f3f4f6;
+  background-color: #f5f5f7;
   padding: 0.2em 0.4em;
-  border-radius: 3px;
-  font-family: 'Courier New', monospace;
+  border-radius: 4px;
+  font-family:  'SF Mono', 'Monaco', 'Courier New', monospace;
   font-size: 0.9em;
+  color: #c7254e;
 }
-
 
 .ProseMirror table {
   border-collapse: collapse;
-  table-layout: fixed;
   width: 100%;
-  margin:  1em 0;
-  overflow: hidden;
+  margin:  1.5em 0;
+  border: 1px solid #e5e7eb;
 }
 
 .ProseMirror td,
 .ProseMirror th {
-  min-width: 1em;
-  border: 2px solid #ced4da;
-  padding: 8px;
-  vertical-align: top;
-  box-sizing: border-box;
-  position: relative;
+  border: 1px solid #e5e7eb;
+  padding: 10px 12px;
 }
 
 .ProseMirror th {
-  font-weight: bold;
-  text-align: left;
-  background-color: #f1f3f5;
+  font-weight: 600;
+  background-color: #f9fafb;
 }
 
-.ProseMirror .selectedCell:after {
-  z-index: 2;
+.ProseMirror hr {
+  border: none;
+  border-top: 1px solid #d2d2d7;
+  margin: 2em 0;
+}
+
+/* ============================================
+   PAGINATION - Google Docs Style
+   ============================================ */
+
+/* Page break widget container */
+.page-break-widget {
+  display: block ! important;
+  visibility: visible ! important;
+  position: relative ! important;
+  width: calc(100% + var(--page-margin-side) * 2) !important;
+  margin-left: calc(-1 * var(--page-margin-side)) !important;
+  margin-right:  calc(-1 * var(--page-margin-side)) !important;
+  margin-top: auto !important;
+  margin-bottom: 0 !important;
+  z-index: 5 !important;
+  user-select: none;
+  page-break-after: always;
+  break-after: page;
+}
+
+/* Footer of current page - subtle and minimal */
+.page-break-footer {
+  height: calc(var(--page-margin-bottom) - 10px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: white !important;
+  padding: 8px 0 ! important;
+}
+
+/* Visual gap between pages - mimics Google Docs workspace */
+.page-break-gap {
+  height: var(--page-gap) !important;
+  min-height: var(--page-gap) !important;
+  display: flex !important;
+  align-items: center ! important;
+  justify-content:  center !important;
+  background:  var(--workspace-bg) !important;
+  cursor: pointer ! important;
+  position: relative ! important;
+  transition: all 0.2s ease;
+}
+
+.page-break-gap:hover {
+  background: #f3f4f6 !important;
+}
+
+.page-break-gap::before {
+  content: '';
   position: absolute;
-  content: "";
-  left: 0;
-  right: 0;
-  top:  0;
-  bottom: 0;
-  background:  rgba(200, 200, 255, 0.4);
-  pointer-events: none;
+  top: 0;
+  left:  50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #d1d5db 20%, #d1d5db 80%, transparent);
 }
 
-/* pagination */
-.page-break-container {
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  z-index: 10;
-  width: calc(100% + var(--page-margin-side) * 2);
-  margin-left: calc(-1 * var(--page-margin-side));
-  margin-right: calc(-1 * var(--page-margin-side));
-  margin-top: 0;
-  margin-bottom:  0;
-  user-select: none;
-  pointer-events: none;
+.page-break-gap.collapsed {
+  height: 4px !important;
+  min-height: 4px !important;
 }
 
-.page-footer {
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: white;
-  position: relative;
-  box-shadow: 0 2px 4px rgba(60, 64, 67, 0.15);
+.page-break-gap-content {
+  display:  flex !important;
+  align-items: center !important;
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
-.page-gap {
-  height: var(--page-gap);
-  background: #e8eaed;
-  position: relative;
-  z-index: 5;
-  box-shadow: 
-    inset 0 3px 6px rgba(0, 0, 0, 0.1),
-    inset 0 -3px 6px rgba(0, 0, 0, 0.05);
+.page-break-gap:hover .page-break-gap-content {
+  opacity:  1;
 }
 
-.page-header-space {
-  height: 24px;
-  background: white;
-  box-shadow:  0 -2px 4px rgba(60, 64, 67, 0.1);
+.page-break-label {
+  font-size: 9px ! important;
+  font-weight:  500 !important;
+  color: #9ca3af ! important;
+  text-transform:  uppercase;
+  letter-spacing:  0.5px;
+  background: white !important;
+  padding: 3px 10px !important;
+  border-radius: 10px !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
 }
 
+.page-break-gap.collapsed .page-break-gap-content {
+  display:  none !important;
+}
+
+/* Header of next page - minimal */
+.page-break-header {
+  height: calc(var(--page-margin-top) - 10px) !important;
+  display: flex !important;
+  align-items: flex-end ! important;
+  justify-content:  center !important;
+  background:  white !important;
+  padding:  8px 0 !important;
+  box-shadow: var(--shadow-paper);
+}
+
+/* Page numbers - subtle like Google Docs */
 .page-number {
-  font-size: 11px;
-  font-weight: 400;
-  font-family: Arial, sans-serif;
-  color: #5f6368;
+  font-size: 10px !important;
+  font-weight: 400 !important;
+  color: #9ca3af !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif !important;
+  display: inline-block ! important;
 }
 
-.page-footer-final {
-  width: calc(100% + var(--page-margin-side) * 2);
-  margin-left: calc(-1 * var(--page-margin-side));
-  margin-right: calc(-1 * var(--page-margin-side));
-  margin-top: auto;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: white;
-  user-select: none;
-  pointer-events: none;
+/* Final page footer */
+.final-page-footer {
+  display: flex ! important;
+  align-items:  center !important;
+  justify-content: center !important;
+  width: calc(100% + var(--page-margin-side) * 2) !important;
+  margin-left: calc(-1 * var(--page-margin-side)) !important;
+  margin-right: calc(-1 * var(--page-margin-side)) !important;
+  margin-top: auto ! important;
+  height: calc(var(--page-margin-bottom) - 10px) !important;
+  background: white !important;
+  padding: 8px 0 !important;
 }
 
-
+/* ============================================
+   PRINT STYLES
+   ============================================ */
 
 @media print {
   @page {
-    size: A4;
+    size:  A4;
     margin: 1in;
   }
 
   body {
     background: white;
     margin: 0;
-    -webkit-print-color-adjust:  exact;
-    print-color-adjust: exact;
   }
 
   .editor-pages {
     width: 100%;
-    margin:  0;
+    margin: 0;
     padding: 0;
   }
 
@@ -272,20 +300,17 @@ ul[data-type="taskList"] li > div {
     box-shadow: none;
     padding: 0;
     margin:  0;
-  }
-
-  .page-break-container {
-    height: 0;
-    overflow: hidden;
-    visibility: hidden;
-    break-after: page;
     page-break-after: always;
   }
 
-  .page-footer,
-  .page-gap,
-  .page-header-space,
-  .page-footer-final {
-    display: none;
+  .page-break-widget,
+  .page-break-footer,
+  .page-break-gap,
+  .page-break-header,
+  .final-page-footer {
+    display: none ! important;
+    height: 0 !important;
+    margin:  0 !important;
+    padding: 0 !important;
   }
 }
