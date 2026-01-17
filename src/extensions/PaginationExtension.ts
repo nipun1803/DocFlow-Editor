@@ -184,7 +184,7 @@ export const Pagination = Extension.create<PaginationOptions>({
         },
         props: {
           decorations(state) {
-            return this.getState(state).decorations;
+            return this.getState(state)?.decorations || DecorationSet.empty;
           },
         },
         view(view) {
