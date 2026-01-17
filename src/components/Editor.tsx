@@ -12,6 +12,7 @@ import { Table } from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
 import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
+import { Header } from "./Header";
 import { Toolbar } from "./Toolbar";
 import TaskItem from "@tiptap/extension-task-item";
 import TaskList from "@tiptap/extension-task-list";
@@ -170,6 +171,7 @@ export default function DocumentEditor() {
 
   return (
     <div className="flex flex-col h-screen bg-zinc-100">
+      <Header />
       <Toolbar editor={editor} zoom={zoom} onZoomChange={setZoom} />
 
       <div className="flex-1 overflow-auto print:overflow-visible" id="printableArea">

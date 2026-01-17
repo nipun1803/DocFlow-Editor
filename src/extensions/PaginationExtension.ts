@@ -14,17 +14,7 @@ export const PAGE_SIZES: Record<string, PageSize> = {
     name: "A4",
     width: 794,
     height: 1123,
-  },
-  letter: {
-    name: "Letter",
-    width: 816,
-    height: 1056,
-  },
-  legal: {
-    name: "Legal",
-    width: 816,
-    height: 1344,
-  },
+  }
 };
 
 export interface PaginationOptions {

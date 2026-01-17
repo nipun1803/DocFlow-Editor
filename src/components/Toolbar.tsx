@@ -16,17 +16,13 @@ import {
   Printer,
   Minus,
   Plus,
-  Type,
   Baseline,
   Highlighter,
-  Link as LinkIcon,
-  Image as ImageIcon,
-  MessageSquarePlus,
-  CheckSquare,
-  Indent,
-  Outdent,
   RemoveFormatting,
   ChevronDown,
+  FileText,
+  Settings,
+  Grid3x3, // Import Grid icon for Table
 } from "lucide-react";
 import { useCallback, useState, useEffect } from "react";
 import { FONT_FAMILIES } from "../extensions/FontFamily";
@@ -50,9 +46,12 @@ const HEADING_STYLES = [
 
 export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
   const [currentFontSize, setCurrentFontSize] = useState("12");
-  const [inputFontSize, setInputFontSize] = useState("12");
   const [currentFontFamily, setCurrentFontFamily] = useState("Arial");
   const [showHeadingDropdown, setShowHeadingDropdown] = useState(false);
+  const [showPrintDropdown, setShowPrintDropdown] = useState(false);
+
+  // Sync state with editor
+  const [, forceUpdate] = useState({});
 
   // Sync state with editor
   useEffect(() => {
@@ -64,11 +63,9 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
       if (size) {
         const cleanSize = size.replace(/[a-z]/g, "");
         setCurrentFontSize(cleanSize);
-        setInputFontSize(cleanSize);
       } else {
         // Default
         setCurrentFontSize("12");
-        setInputFontSize("12");
       }
 
       // Font Family
@@ -78,14 +75,19 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
       } else {
         setCurrentFontFamily("Arial"); // Default fallback
       }
+
+      // Force re-render to update active states (bold, italic, undo/redo, etc.)
+      forceUpdate({});
     };
 
     editor.on("selectionUpdate", updateState);
     editor.on("update", updateState);
+    editor.on("transaction", updateState);
 
     return () => {
       editor.off("selectionUpdate", updateState);
       editor.off("update", updateState);
+      editor.off("transaction", updateState);
     };
   }, [editor]);
 
@@ -94,34 +96,8 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
     if (!isNaN(size) && size > 0) {
       editor?.chain().focus().setFontSize(`${size}pt`).run();
       setCurrentFontSize(size.toString());
-      setInputFontSize(size.toString());
     }
   }, [editor]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputFontSize(e.target.value);
-  };
-
-  const handleInputBlur = () => {
-    handleFontSizeChange(inputFontSize);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleFontSizeChange(inputFontSize);
-      editor?.commands.focus();
-    }
-  };
-
-  const incrementFontSize = () => {
-    const newSize = parseInt(currentFontSize) + 1;
-    handleFontSizeChange(newSize.toString());
-  };
-
-  const decrementFontSize = () => {
-    const newSize = Math.max(1, parseInt(currentFontSize) - 1);
-    handleFontSizeChange(newSize.toString());
-  };
 
   if (!editor) {
     return (
@@ -155,12 +131,12 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
         transition-colors duration-100 ease-in-out
         ${active
           ? "bg-blue-100 text-blue-700"
-          : "text-[#444746] hover:bg-[#1d1d1f]/10"
+          : "text-[#444746] hover:bg-[#1d1d1f]/10 group"
         }
         ${disabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}
         ${className}
       `}
-      title={title}
+      data-title={title} // Use data-title for custom tooltip
       type="button"
     >
       {children}
@@ -168,9 +144,9 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
   );
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-[#edf2fa] border-b border-[#c7c7c7] print:hidden h-[46px] flex items-center">
+    <div className="fixed top-[64px] left-0 right-0 z-40 bg-[#edf2fa] border-b border-[#c7c7c7] print:hidden h-[46px] flex items-center">
       {/* Scrollable Container for small screens */}
-      <div className="flex items-center w-full px-4 gap-1 overflow-x-auto no-scrollbar h-full">
+      <div className="flex items-center w-full px-4 gap-1 overflow-visible h-full flex-wrap sm:flex-nowrap">
 
         {/* History & Print */}
         <div className="flex items-center gap-0.5">
@@ -180,11 +156,46 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
           <ToolButton onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()} title="Redo (Custom + Y)">
             <Redo2 size={15} strokeWidth={2.5} />
           </ToolButton>
-          <ToolButton onClick={() => window.print()} title="Print">
-            <Printer size={15} strokeWidth={2.5} />
-          </ToolButton>
+
+          {/* Print Options Dropdown */}
+          <div className="relative">
+            <ToolButton onClick={() => setShowPrintDropdown(!showPrintDropdown)} title="Print Options">
+              <Printer size={15} strokeWidth={2.5} />
+            </ToolButton>
+
+            {showPrintDropdown && (
+              <>
+                <div className="fixed inset-0 z-[100]" onClick={() => setShowPrintDropdown(false)} />
+                <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-zinc-200 py-1 z-[101]">
+                  <button
+                    className="w-full text-left px-4 py-2.5 hover:bg-zinc-100 flex items-center gap-3 text-sm"
+                    onClick={() => {
+                      window.print();
+                      setShowPrintDropdown(false);
+                    }}
+                  >
+                    <Printer size={16} className="text-zinc-600" />
+                    <span>Print Document</span>
+                  </button>
+                  <div className="border-t border-zinc-100 my-1" />
+                  <div className="px-4 py-2.5 text-sm">
+                    <div className="flex items-center gap-3 text-zinc-500">
+                      <FileText size={16} />
+                      <span>Page Size: A4</span>
+                    </div>
+                  </div>
+                  <div className="px-4 py-2.5 text-sm">
+                    <div className="flex items-center gap-3 text-zinc-500">
+                      <Settings size={16} />
+                      <span>Margins: 1 inch</span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
           {/* Zoom - Simplified for space */}
-          <div className="flex items-center gap-1 ml-1 px-2 py-0.5 rounded-[4px] hover:bg-[#1d1d1f]/10 cursor-pointer text-[#444746]" title="Zoom">
+          <div className="flex items-center gap-1 ml-1 px-2 py-0.5 rounded-[4px] hover:bg-[#1d1d1f]/10 cursor-pointer text-[#444746]" data-title="Zoom">
             <select
               value={zoom}
               onChange={(e) => onZoomChange?.(Number(e.target.value))}
@@ -264,29 +275,17 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
         <Separator />
 
         {/* Font Size */}
-        <div className="flex items-center border border-zinc-300 rounded-[4px] h-7 bg-white px-0.5">
-          <button
-            onClick={decrementFontSize}
-            className="w-6 h-full flex items-center justify-center hover:bg-zinc-100 rounded-sm text-zinc-600"
-            title="Decrease font size"
+        <div className="flex items-center gap-1 ml-1 px-2 py-0.5 rounded-[4px] hover:bg-[#1d1d1f]/10 cursor-pointer text-[#444746]" data-title="Font size">
+          <select
+            value={currentFontSize}
+            onChange={(e) => handleFontSizeChange(e.target.value)}
+            className="w-[50px] bg-transparent text-sm font-medium focus:outline-none cursor-pointer appearance-none text-center"
           >
-            <Minus size={12} strokeWidth={3} />
-          </button>
-          <input
-            type="text"
-            value={inputFontSize}
-            onChange={handleInputChange}
-            onBlur={handleInputBlur}
-            onKeyDown={handleKeyDown}
-            className="w-8 h-full text-center text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 border-x border-transparent hover:border-zinc-200"
-          />
-          <button
-            onClick={incrementFontSize}
-            className="w-6 h-full flex items-center justify-center hover:bg-zinc-100 rounded-sm text-zinc-600"
-            title="Increase font size"
-          >
-            <Plus size={12} strokeWidth={3} />
-          </button>
+            {[8, 9, 10, 11, 12, 14, 18, 24, 30, 36, 48, 60, 72].map(size => (
+              <option key={size} value={size}>{size}</option>
+            ))}
+          </select>
+          <ChevronDown size={10} className="-ml-3 pointer-events-none text-zinc-500" />
         </div>
 
         <Separator />
@@ -318,14 +317,12 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
           <div className="w-[1px] h-5 bg-zinc-200 mx-0.5" />
 
           <ToolButton
-            onClick={() => { }} // Needs Color Extension logic improvement for direct click? 
-            // Usually separate dropdown. For now, simple standard black/red switch or color picker
+            onClick={() => { }}
             title="Text color"
           >
             <div className="relative flex flex-col items-center justify-center">
               <Baseline size={14} strokeWidth={2.5} />
               <div className="h-[3px] w-3 bg-black mt-[1px] rounded-full" />
-              {/* Invisible color input overlay */}
               <input
                 type="color"
                 className="absolute inset-0 opacity-0 cursor-pointer"
@@ -333,37 +330,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
               />
             </div>
           </ToolButton>
-          <ToolButton
-            onClick={() => { }}
-            title="Highlight color"
-          >
-            <div className="relative flex flex-col items-center justify-center">
-              <Highlighter size={14} strokeWidth={2.5} />
-              <div className="h-[3px] w-3 bg-yellow-300 mt-[1px]" />
-              <input // Need highlight extension? Assuming standard setColor creates text color. Highlight usually distinct.
-                // Standard Tiptap helper doesn't have highlight by default unless 'Highlight' extension added.
-                // I'll leave as 'Text Color' picker for now to avoid errors if extension missing.
-                type="color"
-                className="absolute inset-0 opacity-0 cursor-pointer"
-                onChange={(e) => {
-                  // If highlight extension exists: editor.chain().focus().toggleHighlight({ color: e.target.value }).run()
-                  // Otherwise just log or ignore
-                }}
-              />
-            </div>
-          </ToolButton>
-        </div>
-
-        <Separator />
-
-        {/* Insert - Simplified */}
-        <div className="flex items-center gap-0.5">
-          <ToolButton onClick={() => { }} title="Insert link" disabled>
-            <LinkIcon size={15} strokeWidth={2.5} />
-          </ToolButton>
-          <ToolButton onClick={() => { }} title="Insert image" disabled>
-            <ImageIcon size={15} strokeWidth={2.5} />
-          </ToolButton>
+          {/* Highlight removed as per request */}
         </div>
 
         <Separator />
@@ -404,7 +371,6 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
         {/* Lists & Indent */}
         <div className="flex items-center gap-0.5">
-          {/* Checkbox? Needed extension. Skipping for standard lists first */}
           <ToolButton
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             active={editor.isActive('bulletList')}
@@ -419,20 +385,17 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
           >
             <ListOrdered size={15} strokeWidth={2.5} />
           </ToolButton>
+        </div>
 
+        <Separator />
+
+        {/* Insert Table */}
+        <div className="flex items-center">
           <ToolButton
-            onClick={() => editor.chain().focus().liftListItem('listItem').run()} // sink/lift logic check
-            disabled={!editor.can().liftListItem('listItem')}
-            title="Decrease indent"
+            onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+            title="Insert Table"
           >
-            <Outdent size={15} strokeWidth={2.5} />
-          </ToolButton>
-          <ToolButton
-            onClick={() => editor.chain().focus().sinkListItem('listItem').run()}
-            disabled={!editor.can().sinkListItem('listItem')}
-            title="Increase indent"
-          >
-            <Indent size={15} strokeWidth={2.5} />
+            <Grid3x3 size={15} strokeWidth={2.5} />
           </ToolButton>
         </div>
 
