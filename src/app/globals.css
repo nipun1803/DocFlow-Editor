@@ -6,7 +6,7 @@
 }
 
 :root {
-  --background: 0 0% 100%;
+  --background:  0 0% 100%;
   --workspace-bg: #f4f4f5;
   --foreground: #1d1d1f;
   --border-subtle: #d2d2d7;
@@ -38,16 +38,13 @@ body {
   flex-direction: column;
   align-items: center;
   padding: 130px 0 100px 0;
-  /* Increased top padding for fixed header + toolbar */
   width: 100%;
 }
 
-/* Center the actual ProseMirror editor */
 .editor-container .tiptap {
   margin: 0 auto;
 }
 
-/* Center #editor wrapper */
 #editor {
   display: flex;
   justify-content: center;
@@ -58,219 +55,71 @@ body {
    TIPTAP PAGINATION VISUAL STYLES
    ============================================ */
 
-/* The Editor Content Area */
 .tiptap.ProseMirror {
-  /* We don't set a background here so we can see the gaps. 
-       Instead, we might want the editor container to be gray 
-       and the pages (implicit) to simply be the white areas.
-       However, Tiptap is one continuous contenteditable. 
-       So we use the gap strategy. */
-  background-color: white !important;
-  /* Force A4 width on screen to match print exactly */
+  background-color: white ! important;
   width: 210mm;
   min-height: 297mm;
   margin: 0 auto;
   padding: 0 96px 0 96px;
   box-sizing: border-box;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-/* 
-   THE "GAP" TRICK:
-   The gap div breaks the white flow with a gray bar, 
-   creating the illusion of separate pages.
-*/
+/* Page Break Widget */
 .page-break-widget {
   display: block;
   width: 100%;
   user-select: none;
 }
 
+/* Gap between pages (visual only) */
 .page-break-gap {
   height: 24px;
-  /* Space between pages */
   background-color: var(--workspace-bg);
-  /* Matches body background */
   border-top: 1px solid var(--border-subtle);
   border-bottom: 1px solid var(--border-subtle);
-  /* Inner shadow to give depth to the "pages" above and below */
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  margin-left: -96px;
-  /* OUTSET: Counteract editor padding if any */
   width: calc(100% + 192px);
-  /* Full width including outsets */
+  margin-left: -96px;
   position: relative;
   left: 0;
 }
 
-/* If the editor has standard padding, we need to adjust the gap width/position.
-   The current globals.css sets .editor-container padding, but not explicit .tiptap padding 
-   except maybe in the JS margin options (96px). 
-   
-   If PaginationExtension adds margins via padding on .tiptap, we need to negate it.
-   Let's assume the extension sets padding: 96px (from options).
-*/
-
-
-/* Fix specific gap position to stretch full width of the "page" container */
-.page-break-gap {
-  margin-left: -96px;
-  /* Full width of the editor (210mm) is consistent now */
-  width: calc(100% + 192px);
-}
-
-/* Page Footer (Bottom of a page) */
+/* Page Footer (visible on screen) */
 .page-break-footer {
   height: 96px;
-  /* Margin bottom */
   display: flex;
   align-items: flex-end;
-  /* Page number at bottom or center? Usually bottom roughly. */
-  justify-content: center;
+  justify-content: flex-end;
+  padding-right: 96px;
   color: #6b7280;
   font-size: 11px;
-  padding-bottom: 24px;
+  padding-bottom: 30px;
   background-color: white;
-  /* Part of the page */
 }
 
-/* Page Header (Top of new page) */
+/* Page Header */
 .page-break-header {
   height: 96px;
-  /* Margin top */
   background-color: white;
-  /* Part of the page */
   display: block;
 }
 
 /* Final Page Footer */
-.final-page-container {
-  display: block;
-  width: 100%;
-}
-
-.page-spacer {
-  display: block;
-  width: 100%;
-  /* No bg color needed, it just pushes content down */
-}
-
 .final-page-footer {
   height: 96px;
   display: flex;
   align-items: flex-end;
-  justify-content: center;
+  justify-content: flex-end;
+  padding-right: 96px;
   color: #6b7280;
   font-size: 11px;
-  padding-bottom: 24px;
+  padding-bottom: 30px;
   margin-top: auto;
-  /* To mimic the bottom of the page */
 }
 
 .page-number {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
-}
-
-/* ============================================
-   PRINT STYLES - CRITICAL FOR USCIS
-   ============================================ */
-@media print {
-  @page {
-    size: A4;
-    margin: 0;
-  }
-
-  body {
-    background: white;
-    margin: 0;
-  }
-
-  .editor-container {
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
-  }
-
-  /* Reset width constraints */
-  .tiptap.ProseMirror {
-    /* Force exact A4 width in print to match screen */
-    width: 210mm !important;
-    max-width: 210mm !important;
-    min-width: 210mm !important;
-    box-shadow: none !important;
-    padding: 96px 96px 0 96px !important;
-    margin: 0 auto !important;
-  }
-
-  /* Hide the gap bar – we want continuous flow or browser native breaks */
-  /* Hide the gap bar – we want continuous flow or browser native breaks */
-  /* Hide the gap bar – we want continuous flow or browser native breaks */
-  .page-break-gap,
-  .rm-pagination-gap {
-    display: none !important;
-    height: 0 !important;
-    border: none !important;
-    background: transparent !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* We need to force a page break where the widget is */
-  /* We need to force a page break where the widget is */
-  .page-break-widget {
-    break-before: auto !important;
-    page-break-before: auto !important;
-    height: auto !important;
-    display: block !important;
-    width: 100% !important;
-  }
-
-  /* The actual break happens BEFORE the new page header */
-  .page-break-header {
-    break-before: page !important;
-    page-break-before: always !important;
-    display: block !important;
-    height: 96px !important;
-  }
-
-  /* 
-       Hide our manual headers/footers in print if we want standard browser ones?
-       OR stick to ours. The user said "Match Print Output". 
-       Ideally, we print exactly what we see. 
-       The "Gap" is the only thing that shouldn't print.
-       
-       However, browsers add their own margins. 
-       If we supply 96px padding in the DIV, and the browser adds 1 inch margin, 
-       we get double margins. 
-       
-       Strategy: 
-       @page margin: 0. 
-       We control layout fully.
-    */
-
-  .page-break-footer,
-  .final-page-footer {
-    /* Position these at the bottom of the printed page? 
-           It's hard to force position in HTML print. 
-           Usually cleaner to hide custom UI footer and let browser handle it, 
-           OR if exact match is needed, we rely on the flow.
-        */
-    display: flex !important;
-    /* Keep them to show page numbers */
-    height: 96px !important;
-  }
-
-
-
-  /* Hide UI */
-  .sticky,
-  nav,
-  header,
-  .toolbar-container,
-  .print\:hidden {
-    display: none !important;
-  }
+  color: #9ca3af;
 }
 
 /* ============================================
@@ -284,13 +133,6 @@ body {
   font-size: 12pt;
   line-height: 1.6;
   color: var(--foreground);
-  /* background: white;  <-- Handled above with !important */
-}
-
-.rm-pagination-gap {
-  background: #f4f4f5 !important;
-  border-left: 0 !important;
-  border-right: 0 !important;
 }
 
 .ProseMirror p {
@@ -299,7 +141,7 @@ body {
 
 .ProseMirror h1 {
   font-size: 28pt;
-  line-height: 1.2;
+  line-height:  1.2;
   margin: 0 0 0.5em 0;
   font-weight: 600;
   color: #1d1d1f;
@@ -307,7 +149,7 @@ body {
 
 .ProseMirror h2 {
   font-size: 20pt;
-  line-height: 1.3;
+  line-height:  1.3;
   margin: 1.5em 0 0.5em 0;
   font-weight: 600;
   color: #1d1d1f;
@@ -321,11 +163,11 @@ body {
   color: #1d1d1f;
 }
 
-.ProseMirror>*:first-child {
+.ProseMirror > *:first-child {
   margin-top: 0;
 }
 
-.ProseMirror>*:last-child {
+.ProseMirror > *:last-child {
   margin-bottom: 0;
 }
 
@@ -337,7 +179,7 @@ body {
 .ProseMirror ul,
 .ProseMirror ol {
   padding-left: 1.75em;
-  margin: 0.75em 0;
+  margin: 0. 75em 0;
   list-style-position: outside;
 }
 
@@ -354,12 +196,12 @@ body {
   display: list-item;
 }
 
-.ProseMirror li>p {
-  margin: 0;
+.ProseMirror li > p {
+  margin:  0;
   display: inline;
 }
 
-.ProseMirror li>p:first-child {
+.ProseMirror li > p:first-child {
   display: inline;
 }
 
@@ -383,8 +225,8 @@ body {
 
 /* Task lists */
 ul[data-type="taskList"] {
-  list-style: none;
-  padding: 0;
+  list-style:  none;
+  padding:  0;
   margin: 0.75em 0;
 }
 
@@ -394,20 +236,20 @@ ul[data-type="taskList"] li {
   margin-bottom: 0.35em;
 }
 
-ul[data-type="taskList"] li>label {
+ul[data-type="taskList"] li > label {
   flex: 0 0 auto;
   margin-right: 0.5rem;
   user-select: none;
   margin-top: 0.2em;
 }
 
-ul[data-type="taskList"] li>label input[type="checkbox"] {
+ul[data-type="taskList"] li > label input[type="checkbox"] {
   width: 16px;
   height: 16px;
   cursor: pointer;
 }
 
-ul[data-type="taskList"] li>div {
+ul[data-type="taskList"] li > div {
   flex: 1 1 auto;
 }
 
@@ -435,14 +277,14 @@ ul[data-type="taskList"] li>div {
   color: #f5f5f7;
   padding: 1em;
   border-radius: 8px;
-  overflow-x: auto;
-  font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+  overflow-x:  auto;
+  font-family:  'SF Mono', 'Monaco', 'Courier New', monospace;
   font-size: 0.9em;
   line-height: 1.5;
 }
 
 .ProseMirror pre code {
-  background: none;
+  background:  none;
   padding: 0;
   color: inherit;
 }
@@ -451,8 +293,8 @@ ul[data-type="taskList"] li>div {
 .ProseMirror table {
   border-collapse: collapse;
   width: 100%;
-  margin: 1.5em 0;
-  border: 1px solid #e5e7eb;
+  margin:  1.5em 0;
+  border:  1px solid #e5e7eb;
 }
 
 .ProseMirror td,
@@ -476,7 +318,7 @@ ul[data-type="taskList"] li>div {
   content: "";
   left: 0;
   right: 0;
-  top: 0;
+  top:  0;
   bottom: 0;
   background: rgba(0, 122, 255, 0.15);
   pointer-events: none;
@@ -489,189 +331,27 @@ ul[data-type="taskList"] li>div {
   margin: 2em 0;
 }
 
-/* ============================================
-   PRINT STYLES
-   ============================================ */
-
-@media print {
-  @page {
-    size: A4;
-    margin: 0;
-  }
-
-  /* Reset body for print */
-  body {
-    background: white !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  /* Hide toolbar and UI elements in print */
-  [class*="print:hidden"],
-  [class*="fixed top-0"],
-  .no-scrollbar,
-  nav,
-  header {
-    display: none !important;
-    visibility: hidden !important;
-  }
-
-  /* Reset editor container for print */
-  .editor-container {
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    transform: none !important;
-    transform-origin: initial !important;
-    display: block !important;
-  }
-
-  /* Reset any zoom/scale transforms */
-  .editor-container,
-  .rm-with-pagination,
-  #editor,
-  .tiptap,
-  .ProseMirror {
-    transform: none !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* Force full width on editor */
-  #editor {
-    width: 100% !important;
-    display: flex !important;
-    justify-content: center !important;
-    background: white !important;
-  }
-
-  /* Hide page break decorators but maintain spacing */
-  .rm-with-pagination .breaker {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    height: 0 !important;
-    min-height: 0 !important;
-    margin: 0 !important;
-    break-before: page !important;
-    page-break-before: always !important;
-  }
-
-  /* First page should not have page break before */
-  .rm-with-pagination .breaker:first-of-type {
-    break-before: auto !important;
-    page-break-before: auto !important;
-  }
-
-  /* Page header and footer in print */
-  .rm-with-pagination .rm-page-header {
-    display: none !important;
-    /* Hide header in print if standard A4 text flow is desired, or keep as needed. Usually headers duplicate. */
-    height: 0 !important;
-  }
-
-  .rm-with-pagination .rm-page-footer {
-    display: flex !important;
-    background: white !important;
-    /* Remove fixed positioning so they print in place (flow) */
-    position: relative !important;
-    bottom: auto !important;
-    left: auto !important;
-    width: 100% !important;
-    justify-content: center !important;
-    padding-bottom: 20px;
-    z-index: 10;
-  }
-
-  /* Ensure page numbers are visible */
-  .rm-with-pagination .rm-page-footer .rm-page-footer-right {
-    display: flex !important;
-    justify-content: center !important;
-    color: #374151 !important;
-    font-size: 10pt !important;
-  }
-
-  /* White background for content */
-  .ProseMirror,
-  .tiptap.ProseMirror {
-    background: white !important;
-    box-shadow: none !important;
-    width: 100% !important;
-  }
-
-  /* Prevent page breaks inside elements */
-  .ProseMirror h1,
-  .ProseMirror h2,
-  .ProseMirror h3 {
-    page-break-after: avoid !important;
-    page-break-inside: avoid !important;
-  }
-
-  .ProseMirror p {
-    page-break-inside: avoid !important;
-    orphans: 3;
-    widows: 3;
-  }
-
-  .ProseMirror ul,
-  .ProseMirror ol {
-    page-break-inside: avoid !important;
-  }
-
-  .ProseMirror table {
-    page-break-inside: avoid !important;
-  }
-
-  .ProseMirror tr {
-    page-break-inside: avoid !important;
-  }
-
-  .ProseMirror blockquote {
-    page-break-inside: avoid !important;
-  }
-
-  .ProseMirror pre {
-    page-break-inside: avoid !important;
-  }
-
-  /* Ensure links are visible in print */
-  .ProseMirror a {
-    color: #1d4ed8 !important;
-    text-decoration: underline !important;
-  }
-
-  /* Print overflow handling */
-  #printableArea {
-    overflow: visible !important;
-    height: auto !important;
-  }
+/* Highlight */
+mark {
+  background-color: #fef08a;
+  padding: 0.1em 0.2em;
+  border-radius: 2px;
 }
 
-/* Custom Tooltip */
-[data-title] {
+/* Improved Cursor Visibility in Tables */
+.ProseMirror table .selectedCell:after {
+  background: rgba(0, 122, 255, 0.15);
+  border: 1px solid rgba(0, 122, 255, 0.3);
+}
+
+.ProseMirror td {
   position: relative;
 }
 
-[data-title]:hover::after {
-  content: attr(data-title);
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 6px 10px;
-  background-color: #1f1f1f;
-  color: white;
-  font-size: 11px;
-  font-weight: 500;
-  border-radius: 6px;
-  white-space: nowrap;
-  z-index: 1000;
-  margin-top: 6px;
-  pointer-events: none;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+/* Gap styling for tiptap-pagination-plus */
+.rm-pagination-gap {
+  background:  #f4f4f5 !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
 }
+
