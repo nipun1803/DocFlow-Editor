@@ -4,7 +4,7 @@ import { saveAs } from "file-saver";
 let html2canvas: any;
 let docxLib: any;
 
-// lazy loading html2canvas
+// lazy loading 
 async function getHtml2Canvas() {
   if (!html2canvas) {
     html2canvas = (await import("html2canvas")).default;
@@ -12,7 +12,7 @@ async function getHtml2Canvas() {
   return html2canvas;
 }
 
-// lazy loading docx library
+
 async function getDocx() {
   if (!docxLib) {
     docxLib = await import("docx");
@@ -20,7 +20,7 @@ async function getDocx() {
   return docxLib;
 }
 
-// exporting content to pdf
+
 export async function exportToPDF(filename:  string = "document.pdf"): Promise<void> {
   const element = document.querySelector('.tiptap.ProseMirror') as HTMLElement;
   
@@ -34,8 +34,7 @@ export async function exportToPDF(filename:  string = "document.pdf"): Promise<v
 
   try {
     const html2canvas = (await import("html2canvas")).default;
-
-    // Store original styles
+    // storing the styles 
     const editorContainer = document.querySelector('.editor-container') as HTMLElement;
     const originalStyles = {
       transform:  editorContainer?. style.transform || '',
@@ -45,7 +44,7 @@ export async function exportToPDF(filename:  string = "document.pdf"): Promise<v
       width: element. style.width || '',
     };
     
-    // Remove all constraints
+
     if (editorContainer) {
       editorContainer.style. transform = 'none';
     }
@@ -57,10 +56,8 @@ export async function exportToPDF(filename:  string = "document.pdf"): Promise<v
     // Force reflow
     element.offsetHeight;
     
-    // Wait for layout stabilization
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    // Capture full content
     const canvas = await html2canvas(element, {
       useCORS: true,
       logging:  false,
@@ -68,7 +65,7 @@ export async function exportToPDF(filename:  string = "document.pdf"): Promise<v
       allowTaint:  true,
     });
 
-    // Restore original styles
+
     if (editorContainer) {
       editorContainer.style.transform = originalStyles.transform;
     }
@@ -77,7 +74,7 @@ export async function exportToPDF(filename:  string = "document.pdf"): Promise<v
     element.style.height = originalStyles. height;
     element.style. width = originalStyles.width;
 
-    // PDF configuration
+
     const pdf = new jsPDF({
       orientation: "portrait",
       unit: "mm",
@@ -90,14 +87,13 @@ export async function exportToPDF(filename:  string = "document.pdf"): Promise<v
     const contentWidth = pageWidth - (margin * 2);
     const contentHeight = pageHeight - (margin * 2);
 
-    // Calculate image dimensions
+
     const imgWidth = contentWidth;
     const imgHeight = (canvas.height * contentWidth) / canvas.width;
 
     let heightLeft = imgHeight;
     let position = 0;
 
-    // Add first page with margins
     pdf.addImage(
       canvas.toDataURL("image/png", 1.0),
       "PNG",
@@ -111,7 +107,7 @@ export async function exportToPDF(filename:  string = "document.pdf"): Promise<v
 
     heightLeft -= contentHeight;
 
-    // Add remaining pages
+// adding remaining pages
     while (heightLeft > 0) {
       position = -(imgHeight - heightLeft);
       pdf.addPage();
@@ -140,7 +136,7 @@ export async function exportToPDF(filename:  string = "document.pdf"): Promise<v
   }
 }
 
-// export content to docx file
+
 export async function exportToDOCX(
   htmlContent: string,
   filename:  string = "document.docx"
@@ -150,7 +146,7 @@ export async function exportToDOCX(
     console.log("Original HTML length:", htmlContent.length);
     console.log("Contains pagination:", htmlContent. includes('data-rm-pagination'));
     
-    // ✅ Additional cleanup in case Toolbar missed something
+
     let cleanHTML = htmlContent
       .replace(/<div[^>]*data-rm-pagination[^>]*>[\s\S]*?(?=<h[123]|<p|<ul|<ol|<blockquote)/g, '')
       .replace(/<\/div>\s*<\/div>\s*<\/div>\s*$/g, '');
@@ -158,7 +154,6 @@ export async function exportToDOCX(
     console.log("Clean HTML length:", cleanHTML.length);
     console.log("First 300 chars:", cleanHTML.substring(0, 300));
 
-    // loading the docx library actively
     const { Document, Packer, Paragraph, TextRun, HeadingLevel } = await getDocx();
 
     const parser = new DOMParser();
@@ -179,12 +174,12 @@ export async function exportToDOCX(
       } else if (node.nodeType === Node.ELEMENT_NODE) {
         const element = node as Element;
 
-        // ✅ Skip pagination wrapper elements
+
         if (element.classList.contains('rm-pages-wrapper') ||
             element.classList.contains('rm-page-break') ||
             element.classList.contains('page-break-widget') ||
             element.getAttribute('data-rm-pagination')) {
-          return; // Skip this element completely
+          return; 
         }
 
         switch (element.tagName.toLowerCase()) {
@@ -267,7 +262,6 @@ export async function exportToDOCX(
 
     doc.body. childNodes.forEach(processNode);
 
-    // ✅ Add validation
     console.log("Total paragraphs created:", paragraphs.length);
 
     if (paragraphs.length === 0) {
@@ -295,7 +289,7 @@ export async function exportToDOCX(
 
     const blob = await Packer.toBlob(docxDoc);
 
-    // ✅ Add blob size check and success logging
+
     console.log("Blob size:", blob.size, "bytes");
 
     if (blob.size < 100) {
@@ -304,10 +298,10 @@ export async function exportToDOCX(
     }
 
     saveAs(blob, filename);
-    console.log("✅ DOCX export successful!");
+    // console.log(" DOCX export successful!");
 
   } catch (error) {
-    console.error("DOCX export failed:", error);
+    // console.error("DOCX export failed:", error);
     alert("Failed to export DOCX. Please try again.");
   }
 }

@@ -97,19 +97,16 @@ export default function DocumentEditor() {
       TaskItem.configure({
         nested: true,
       }),
-      // PaginationPlus must be last in extensions array
       PaginationPlus.configure({
-        // Visual settings
         pageGap: 24,
         pageBreakBackground: "#d4d4d4",
 
-        // Footer/header content (only use supported properties)
+
         footerLeft: "",
         footerRight: '<span class="page-number">Page {page}</span>',
         headerLeft: "",
         headerRight: "",
 
-        // margins
         contentMarginTop: 96,
         contentMarginBottom: 96,
 

@@ -35,7 +35,6 @@ interface ToolbarProps {
 
 const ZOOM_LEVELS = [50, 75, 90, 100, 125, 150, 200];
 
-// Text style options
 const TEXT_STYLES = [
   { label: "Normal text", value: "paragraph", level: 0 },
   { label: "Heading 1", value: "heading", level: 1 },
@@ -51,15 +50,14 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
   const [isExporting, setIsExporting] = useState(false);
 
   // Force re-render when editor state changes
-  // This ensures toolbar buttons highlight correctly when selecting formatted text
   const [, forceUpdate] = useState(0);
 
-  // Keep toolbar in sync with editor selection
+  //  editor selection
   useEffect(() => {
     if (!editor) return;
 
     const updateToolbar = () => {
-      // Update font size display
+      // Update Tools whenever changed
       const size = editor.getAttributes("textStyle").fontSize;
       if (size) {
         const cleanSize = size.replace(/[a-z]/g, "");
@@ -68,7 +66,6 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
         setCurrentFontSize("12");
       }
 
-      // Update font family display
       const family = editor.getAttributes("textStyle").fontFamily;
       if (family) {
         setCurrentFontFamily(family);
@@ -76,7 +73,6 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
         setCurrentFontFamily("Arial");
       }
 
-      // Update text style display (heading 1, 2, 3, or normal)
       if (editor.isActive("heading", { level: 1 })) {
         setCurrentTextStyle("heading-1");
       } else if (editor.isActive("heading", { level: 2 })) {
@@ -87,7 +83,6 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
         setCurrentTextStyle("paragraph");
       }
 
-      // Force component re-render to update button states
       forceUpdate(prev => prev + 1);
     };
 
@@ -147,7 +142,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
     }
   };
 
-  // TODO: find a better way to handle print styles
+  // find a better way to handle print styles
   // Currently using temporary style injection to hide pagination elements
   const handlePrint = () => {
     const printStyles = document.createElement('style');
@@ -230,7 +225,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
     <div className="fixed top-[64px] left-0 right-0 z-40 bg-zinc-50 border-b border-zinc-200 print:hidden py-1 flex items-center shadow-sm min-h-[46px]">
       <div className="flex items-center w-full px-4 gap-1. 5 flex-wrap">
 
-        {/* Undo/Redo controls */}
+        {/* Undo/Redo  */}
         <div className="flex items-center gap-0.5">
           <ToolButton
             onClick={() => editor.chain().focus().undo().run()}
@@ -312,7 +307,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
             )}
           </div>
 
-          {/* Zoom control */}
+          {/* zoom control */}
           <div className="flex items-center gap-1 ml-1 px-2 py-0.5 rounded hover:bg-zinc-100 cursor-pointer text-zinc-600">
             <select
               value={zoom}
@@ -328,7 +323,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
         <div className="h-5 w-[1px] bg-zinc-300 mx-1" />
 
-        {/* Text style selector (Heading 1, 2, 3, Normal) */}
+        {/* text style) */}
         <div className="flex items-center">
           <div className="relative">
             <select
@@ -348,7 +343,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
         <div className="h-5 w-[1px] bg-zinc-300 mx-1" />
 
-        {/* Font family selector */}
+
         <div className="flex items-center">
           <div className="relative">
             <select
@@ -389,7 +384,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
         <div className="h-5 w-[1px] bg-zinc-300 mx-1" />
 
-        {/* Text formatting buttons */}
+        {/* text formatters */}
         <div className="flex items-center gap-0.5">
           <ToolButton
             onClick={() => editor.chain().focus().toggleBold().run()}
@@ -429,7 +424,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
           <div className="w-[1px] h-5 bg-zinc-200 mx-0.5" />
 
-          {/* Color picker */}
+          {/* color pallete picker */}
           <ToolButton onClick={() => {}} title="Text color">
             <div className="relative flex flex-col items-center">
               <Baseline size={16} strokeWidth={2.5} />
@@ -445,7 +440,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
         <div className="h-5 w-[1px] bg-zinc-300 mx-1" />
 
-        {/* Text alignment buttons */}
+
         <div className="flex items-center gap-0.5">
           <ToolButton
             onClick={() => editor.chain().focus().setTextAlign('left').run()}
@@ -479,7 +474,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
         <div className="h-5 w-[1px] bg-zinc-300 mx-1" />
 
-        {/* List buttons */}
+
         <div className="flex items-center gap-0.5">
           <ToolButton
             onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -499,7 +494,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
         <div className="h-5 w-[1px] bg-zinc-300 mx-1" />
 
-        {/* Table insert button */}
+
         <div className="flex items-center">
           <ToolButton
             onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
@@ -511,7 +506,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
         <div className="h-5 w-[1px] bg-zinc-300 mx-1" />
 
-        {/* Clear formatting button */}
+
         <div className="flex items-center">
           <ToolButton
             onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
