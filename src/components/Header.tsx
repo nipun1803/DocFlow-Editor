@@ -10,7 +10,7 @@ export function Header() {
                     <FileText size={20} className="stroke-[2.5]" />
                 </div>
                 <span className="text-xl font-semibold text-zinc-800 tracking-tight">
-                    Doc-Editor
+                    DocFlow-Editor
                 </span>
             </div>
         </div>

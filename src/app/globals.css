@@ -29,10 +29,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ============================================
-   EDITOR CONTAINER - Centered Layout
-   ============================================ */
-
+/* editor styling */
 .editor-container {
   display: flex;
   flex-direction: column;
@@ -51,9 +48,7 @@ body {
   width: 100%;
 }
 
-/* ============================================
-   TIPTAP PAGINATION VISUAL STYLES
-   ============================================ */
+/* pagination styling */
 
 .tiptap.ProseMirror {
   background-color: white ! important;
@@ -64,14 +59,14 @@ body {
   box-sizing: border-box;
 }
 
-/* Page Break Widget */
+
 .page-break-widget {
   display: block;
   width: 100%;
   user-select: none;
 }
 
-/* Gap between pages (visual only) */
+/* gap between pages  */
 .page-break-gap {
   height: 24px;
   background-color: var(--workspace-bg);
@@ -84,7 +79,6 @@ body {
   left: 0;
 }
 
-/* Page Footer (visible on screen) */
 .page-break-footer {
   height: 96px;
   display: flex;
@@ -104,7 +98,7 @@ body {
   display: block;
 }
 
-/* Final Page Footer */
+
 .final-page-footer {
   height: 96px;
   display: flex;
@@ -122,9 +116,7 @@ body {
   color: #9ca3af;
 }
 
-/* ============================================
-   PROSEMIRROR CONTENT STYLES
-   ============================================ */
+/* prosemirror styling */
 
 .ProseMirror {
   outline: none;
@@ -205,7 +197,7 @@ body {
   display: inline;
 }
 
-/* Nested lists */
+/* nesting lists */
 .ProseMirror ul ul,
 .ProseMirror ol ul {
   list-style-type: circle;
@@ -223,7 +215,6 @@ body {
   margin-top: 0.25em;
 }
 
-/* Task lists */
 ul[data-type="taskList"] {
   list-style:  none;
   padding:  0;
@@ -253,7 +244,7 @@ ul[data-type="taskList"] li > div {
   flex: 1 1 auto;
 }
 
-/* Blockquote */
+/* quote */
 .ProseMirror blockquote {
   border-left: 3px solid var(--accent-primary);
   padding-left: 1.25em;
@@ -262,7 +253,7 @@ ul[data-type="taskList"] li > div {
   color: #6e6e73;
 }
 
-/* Code */
+
 .ProseMirror code {
   background-color: #f5f5f7;
   padding: 0.2em 0.4em;
@@ -289,7 +280,7 @@ ul[data-type="taskList"] li > div {
   color: inherit;
 }
 
-/* Tables */
+/* table styling */
 .ProseMirror table {
   border-collapse: collapse;
   width: 100%;
@@ -324,21 +315,21 @@ ul[data-type="taskList"] li > div {
   pointer-events: none;
 }
 
-/* Horizontal rule */
+
 .ProseMirror hr {
   border: none;
   border-top: 1px solid #d2d2d7;
   margin: 2em 0;
 }
 
-/* Highlight */
+/* highlighter*/
 mark {
   background-color: #fef08a;
   padding: 0.1em 0.2em;
   border-radius: 2px;
 }
 
-/* Improved Cursor Visibility in Tables */
+/* cursor in the table */
 .ProseMirror table .selectedCell:after {
   background: rgba(0, 122, 255, 0.15);
   border: 1px solid rgba(0, 122, 255, 0.3);
@@ -348,7 +339,6 @@ mark {
   position: relative;
 }
 
-/* Gap styling for tiptap-pagination-plus */
 .rm-pagination-gap {
   background:  #f4f4f5 !important;
   border-left: 0 !important;

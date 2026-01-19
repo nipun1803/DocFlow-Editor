@@ -22,7 +22,6 @@ import { useEffect, useState } from "react";
 
 import { Header } from "./Header";
 import { Toolbar } from "./Toolbar";
-import Sidebar from "./Sidebar";
 
 const DEFAULT_CONTENT = `
   <h1>Document Title</h1>
@@ -59,15 +58,10 @@ const DEFAULT_CONTENT = `
   </ul>
 `;
 
-/**
- * Document Editor Component
- * 
- * A Tiptap-based editor with real-time pagination for A4 documents. 
- */
+
 export default function DocumentEditor() {
   const [zoom, setZoom] = useState(100);
   const [mounted, setMounted] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -103,7 +97,7 @@ export default function DocumentEditor() {
       TaskItem.configure({
         nested: true,
       }),
-      // CRITICAL: PaginationPlus MUST be last in extensions array
+      // PaginationPlus must be last in extensions array
       PaginationPlus.configure({
         // Visual settings
         pageGap: 24,
@@ -115,14 +109,14 @@ export default function DocumentEditor() {
         headerLeft: "",
         headerRight: "",
 
-        // Content margins
+        // margins
         contentMarginTop: 0,
         contentMarginBottom: 0,
 
         // A4 page dimensions
         ...PAGE_SIZES.A4,
 
-        // Page margins (1 inch = 96px)
+        // page margins (1 inch = 96px)
         marginTop: 96,
         marginBottom: 96,
         marginLeft: 96,
@@ -161,28 +155,30 @@ export default function DocumentEditor() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-zinc-100 relative">
+    <div className="flex flex-col h-screen bg-zinc-100 relative overflow-hidden">
       <Header />
       <Toolbar editor={editor} zoom={zoom} onZoomChange={setZoom} />
 
-      <Sidebar editor={editor} isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-
-      <div
-        className={`flex-1 overflow-auto print:overflow-visible transition-all duration-300 ${sidebarOpen ? 'pl-64' : 'pl-0'}`}
-        id="printableArea"
-      >
-        <div className="flex flex-col items-center py-8">
-          <div
-            className="editor-container rm-with-pagination"
-            style={{
-              transform: `scale(${zoomScale})`,
-              transformOrigin: "top center",
-              transition: "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-            }}
-          >
-            <EditorContent editor={editor} id="editor" className="w-full" />
+      <div className="flex flex-1 overflow-hidden relative">
+        <div
+          className="flex-1 overflow-auto print:overflow-visible transition-all duration-300"
+          id="printableArea"
+        >
+          <div className="flex flex-col items-center py-8">
+            <div
+              className="editor-container rm-with-pagination"
+              style={{
+                transform: `scale(${zoomScale})`,
+                transformOrigin: "top center",
+                transition: "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}
+            >
+              <EditorContent editor={editor} id="editor" className="w-full" />
+            </div>
           </div>
         </div>
+
+
       </div>
     </div>
   );

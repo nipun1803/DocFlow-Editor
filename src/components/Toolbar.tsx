@@ -119,7 +119,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
     );
   }
 
-  // Helper Components
+
   const Separator = () => <div className="h-5 w-[1px] bg-zinc-300 mx-1" />;
 
   const ToolButton = ({
@@ -161,7 +161,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
     <div className="fixed top-[64px] left-0 right-0 z-40 bg-zinc-50 border-b border-zinc-200 print:hidden py-1 flex items-center shadow-sm min-h-[46px]">
       <div className="flex items-center w-full px-4 gap-1. 5 flex-wrap">
 
-        {/* History & Print */}
+        {/* Undo/Redo & Print/Export & Zoom */}
         <div className="flex items-center gap-0.5">
           <ToolButton
             onClick={() => editor.chain().focus().undo().run()}
@@ -178,7 +178,6 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
             <Redo2 size={16} strokeWidth={2.5} />
           </ToolButton>
 
-          {/* Print/Export Dropdown */}
           <div className="relative">
             <ToolButton
               onClick={() => setShowPrintDropdown(!showPrintDropdown)}
@@ -196,7 +195,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
               <>
                 <div className="fixed inset-0 z-[100]" onClick={() => setShowPrintDropdown(false)} />
                 <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-xl border border-zinc-200 py-1 z-[101]">
-                  {/* Print */}
+
                   <button
                     className="w-full text-left px-4 py-2.5 hover:bg-zinc-100 flex items-center gap-3 text-sm transition-colors"
                     onClick={handlePrint}
@@ -209,7 +208,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
                   <div className="border-t border-zinc-100 my-1" />
 
-                  {/* Export to PDF */}
+
                   <button
                     className="w-full text-left px-4 py-2.5 hover:bg-zinc-100 flex items-center gap-3 text-sm transition-colors disabled:opacity-50"
                     onClick={handleExportPDF}
@@ -219,7 +218,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
                     <span>Export as PDF</span>
                   </button>
 
-                  {/* Export to DOCX */}
+
                   <button
                     className="w-full text-left px-4 py-2.5 hover:bg-zinc-100 flex items-center gap-3 text-sm transition-colors disabled:opacity-50"
                     onClick={handleExportDOCX}
@@ -231,7 +230,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
                   <div className="border-t border-zinc-100 my-1" />
 
-                  {/* Settings Info */}
+
                   <div className="px-4 py-2.5 text-sm">
                     <div className="flex items-center gap-3 text-zinc-500">
                       <Settings size={16} />
@@ -242,8 +241,6 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
               </>
             )}
           </div>
-
-          {/* Zoom */}
           <div className="flex items-center gap-1 ml-1 px-2 py-0.5 rounded-[4px] hover:bg-zinc-100 cursor-pointer text-zinc-600">
             <select
               value={zoom}
@@ -259,7 +256,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
         <Separator />
 
-        {/* Font Family */}
+        {/* Family */}
         <div className="flex items-center">
           <div className="relative group">
             <select
@@ -282,7 +279,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
         <Separator />
 
-        {/* Font Size */}
+        {/* font size */}
         <div className="flex items-center gap-1 ml-1 px-2 py-0.5 rounded-[4px] hover:bg-zinc-100 cursor-pointer text-zinc-600">
           <select
             value={currentFontSize}
@@ -357,7 +354,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
         <Separator />
 
-        {/* Alignment */}
+        {/* Aligning */}
         <div className="flex items-center gap-0.5">
           <ToolButton
             onClick={() => editor.chain().focus().setTextAlign('left').run()}
@@ -391,7 +388,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
         <Separator />
 
-        {/* Lists */}
+        {/* list */}
         <div className="flex items-center gap-0.5">
           <ToolButton
             onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -411,7 +408,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
         <Separator />
 
-        {/* Insert Table */}
+        {/*table */}
         <div className="flex items-center">
           <ToolButton
             onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
@@ -423,7 +420,6 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
         <Separator />
 
-        {/* Clear Formatting */}
         <div className="flex items-center">
           <ToolButton
             onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}

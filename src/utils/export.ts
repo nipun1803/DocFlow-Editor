@@ -1,13 +1,11 @@
 import jsPDF from "jspdf";
 import { saveAs } from "file-saver";
 
-// Dynamic import to avoid TypeScript issues
+
 let html2canvas:  any;
 let docxLib: any;
 
-/**
- * Lazy load html2canvas
- */
+// lazy loading html2canvas
 async function getHtml2Canvas() {
   if (!html2canvas) {
     html2canvas = (await import("html2canvas")).default;
@@ -15,9 +13,7 @@ async function getHtml2Canvas() {
   return html2canvas;
 }
 
-/**
- * Lazy load docx library
- */
+// lazy loading docx library
 async function getDocx() {
   if (!docxLib) {
     docxLib = await import("docx");
@@ -25,9 +21,7 @@ async function getDocx() {
   return docxLib;
 }
 
-/**
- * Export editor content to PDF with accurate A4 formatting
- */
+//  exporting content to pdf
 export async function exportToPDF(filename: string = "document. pdf"): Promise<void> {
   const element = document.querySelector('. tiptap. ProseMirror') as HTMLElement;
   
@@ -40,7 +34,7 @@ export async function exportToPDF(filename: string = "document. pdf"): Promise<v
   document.body.style.cursor = "wait";
 
   try {
-    // Load html2canvas dynamically
+    // loading html2canvas actively
     const html2canvasFunc = await getHtml2Canvas();
 
     const editorContainer = document.querySelector('.editor-container') as HTMLElement;
@@ -119,15 +113,13 @@ export async function exportToPDF(filename: string = "document. pdf"): Promise<v
   }
 }
 
-/**
- * Export editor content to DOCX with proper formatting
- */
+// export content to docx file
 export async function exportToDOCX(
   htmlContent: string,
   filename:  string = "document.docx"
 ): Promise<void> {
   try {
-    // Load docx library dynamically
+    // loading the docx library actively
     const { Document, Packer, Paragraph, TextRun, HeadingLevel } = await getDocx();
 
     const parser = new DOMParser();
@@ -255,9 +247,7 @@ export async function exportToDOCX(
   }
 }
 
-/**
- * Simple print function
- */
+
 export function printDocument(): void {
   window.print();
 }
