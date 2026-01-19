@@ -110,8 +110,8 @@ export default function DocumentEditor() {
         headerRight: "",
 
         // margins
-        contentMarginTop: 0,
-        contentMarginBottom: 0,
+        contentMarginTop: 96,
+        contentMarginBottom: 96,
 
         // A4 page dimensions
         ...PAGE_SIZES.A4,
@@ -155,31 +155,29 @@ export default function DocumentEditor() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-zinc-100 relative overflow-hidden">
-      <Header />
-      <Toolbar editor={editor} zoom={zoom} onZoomChange={setZoom} />
+  <div className="flex flex-col h-screen bg-zinc-100 relative">
+    <Header />
+    <Toolbar editor={editor} zoom={zoom} onZoomChange={setZoom} />
 
-      <div className="flex flex-1 overflow-hidden relative">
-        <div
-          className="flex-1 overflow-auto print:overflow-visible transition-all duration-300"
-          id="printableArea"
-        >
-          <div className="flex flex-col items-center py-8">
-            <div
-              className="editor-container rm-with-pagination"
-              style={{
-                transform: `scale(${zoomScale})`,
-                transformOrigin: "top center",
-                transition: "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-              }}
-            >
-              <EditorContent editor={editor} id="editor" className="w-full" />
-            </div>
+    <div className="flex flex-1 relative">
+      <div
+        className="flex-1 overflow-auto print:overflow-visible transition-all duration-300"
+        id="printableArea"
+      >
+        <div className="flex flex-col items-center py-8">
+          <div
+            className="editor-container rm-with-pagination"
+            style={{
+              transform: `scale(${zoomScale})`,
+              transformOrigin: "top center",
+              transition: "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+            }}
+          >
+            <EditorContent editor={editor} id="editor" className="w-full" />
           </div>
         </div>
-
-
       </div>
     </div>
-  );
+  </div>
+);
 }

@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { useCallback, useState, useEffect } from "react";
 import { FONT_FAMILIES } from "../extensions/FontFamily";
-import { exportToPDF, exportToDOCX, printDocument } from "../utils/export";
+import { exportToPDF, exportToDOCX } from "../utils/export";
 
 interface ToolbarProps {
   editor: Editor | null;
@@ -35,20 +35,31 @@ interface ToolbarProps {
 
 const ZOOM_LEVELS = [50, 75, 90, 100, 125, 150, 200];
 
+// Text style options
+const TEXT_STYLES = [
+  { label: "Normal text", value: "paragraph", level: 0 },
+  { label: "Heading 1", value: "heading", level: 1 },
+  { label: "Heading 2", value: "heading", level:  2 },
+  { label: "Heading 3", value: "heading", level: 3 },
+];
+
 export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
   const [currentFontSize, setCurrentFontSize] = useState("12");
   const [currentFontFamily, setCurrentFontFamily] = useState("Arial");
+  const [currentTextStyle, setCurrentTextStyle] = useState("paragraph");
   const [showPrintDropdown, setShowPrintDropdown] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
-  // Sync state with editor
-  const [, forceUpdate] = useState({});
+  // Force re-render when editor state changes
+  // This ensures toolbar buttons highlight correctly when selecting formatted text
+  const [, forceUpdate] = useState(0);
 
+  // Keep toolbar in sync with editor selection
   useEffect(() => {
     if (!editor) return;
 
-    const updateState = () => {
-      // Font Size
+    const updateToolbar = () => {
+      // Update font size display
       const size = editor.getAttributes("textStyle").fontSize;
       if (size) {
         const cleanSize = size.replace(/[a-z]/g, "");
@@ -57,7 +68,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
         setCurrentFontSize("12");
       }
 
-      // Font Family
+      // Update font family display
       const family = editor.getAttributes("textStyle").fontFamily;
       if (family) {
         setCurrentFontFamily(family);
@@ -65,17 +76,29 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
         setCurrentFontFamily("Arial");
       }
 
-      forceUpdate({});
+      // Update text style display (heading 1, 2, 3, or normal)
+      if (editor.isActive("heading", { level: 1 })) {
+        setCurrentTextStyle("heading-1");
+      } else if (editor.isActive("heading", { level: 2 })) {
+        setCurrentTextStyle("heading-2");
+      } else if (editor.isActive("heading", { level: 3 })) {
+        setCurrentTextStyle("heading-3");
+      } else {
+        setCurrentTextStyle("paragraph");
+      }
+
+      // Force component re-render to update button states
+      forceUpdate(prev => prev + 1);
     };
 
-    editor.on("selectionUpdate", updateState);
-    editor.on("update", updateState);
-    editor.on("transaction", updateState);
+    editor.on("selectionUpdate", updateToolbar);
+    editor.on("update", updateToolbar);
+    editor.on("transaction", updateToolbar);
 
     return () => {
-      editor.off("selectionUpdate", updateState);
-      editor.off("update", updateState);
-      editor.off("transaction", updateState);
+      editor.off("selectionUpdate", updateToolbar);
+      editor.off("update", updateToolbar);
+      editor.off("transaction", updateToolbar);
     };
   }, [editor]);
 
@@ -87,7 +110,23 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
     }
   }, [editor]);
 
-  const handleExportPDF = async () => {
+  const handleTextStyleChange = useCallback((styleValue: string) => {
+    if (! editor) return;
+
+    if (styleValue === "paragraph") {
+      editor.chain().focus().setParagraph().run();
+    } else if (styleValue === "heading-1") {
+      editor.chain().focus().setHeading({ level: 1 }).run();
+    } else if (styleValue === "heading-2") {
+      editor.chain().focus().setHeading({ level: 2 }).run();
+    } else if (styleValue === "heading-3") {
+      editor.chain().focus().setHeading({ level: 3 }).run();
+    }
+
+    setCurrentTextStyle(styleValue);
+  }, [editor]);
+
+  const exportPDF = async () => {
     setIsExporting(true);
     try {
       await exportToPDF("document.pdf");
@@ -97,7 +136,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
     }
   };
 
-  const handleExportDOCX = async () => {
+  const exportDOCX = async () => {
     setIsExporting(true);
     try {
       const content = editor?.getHTML() || "";
@@ -108,20 +147,53 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
     }
   };
 
+  // TODO: find a better way to handle print styles
+  // Currently using temporary style injection to hide pagination elements
   const handlePrint = () => {
-    printDocument();
+    const printStyles = document.createElement('style');
+    printStyles.id = 'print-override';
+    printStyles.textContent = `
+      @media print {
+        .page-break-widget,
+        .page-break-gap,
+        .page-break-footer,
+        .rm-page-footer,
+        .rm-page-header,
+        .page-number {
+          display: none !important;
+        }
+        
+        .editor-container,
+        #printableArea {
+          all: unset !important;
+          display: block !important;
+        }
+        
+        .tiptap. ProseMirror {
+          max-height: none !important;
+          height: auto !important;
+        }
+      }
+    `;
+    document.head.appendChild(printStyles);
+    
+    // Small delay to ensure styles are applied
+    setTimeout(() => {
+      window.print();
+      // Cleanup after print dialog closes
+      setTimeout(() => {
+        document.getElementById('print-override')?.remove();
+      }, 1000);
+    }, 100);
+    
     setShowPrintDropdown(false);
   };
 
   if (!editor) {
-    return (
-      <div className="h-[46px] bg-[#edf2fa] border-b border-[#c7c7c7]" />
-    );
+    return <div className="h-[46px] bg-[#edf2fa] border-b border-[#c7c7c7]" />;
   }
 
-
-  const Separator = () => <div className="h-5 w-[1px] bg-zinc-300 mx-1" />;
-
+  // Reusable button component for toolbar actions
   const ToolButton = ({
     onClick,
     active,
@@ -131,26 +203,23 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
     className = ""
   }: {
     onClick: () => void;
-    active?: boolean;
+    active?:  boolean;
     disabled?: boolean;
     children: React.ReactNode;
-    title: string;
+    title:  string;
     className?: string;
   }) => (
     <button
       onClick={onClick}
       disabled={disabled}
       className={`
-        flex items-center justify-center w-8 h-8 rounded-[4px]
-        transition-all duration-200 ease-in-out
-        ${active
-          ? "bg-blue-100/50 text-blue-700"
-          : "text-zinc-600 hover:bg-zinc-200/50 group"
-        }
+        flex items-center justify-center w-8 h-8 rounded
+        transition-all duration-200
+        ${active ?  "bg-blue-100 text-blue-700" : "text-zinc-600 hover:bg-zinc-200"}
         ${disabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}
         ${className}
       `}
-      data-title={title}
+      title={title}
       type="button"
     >
       {children}
@@ -161,7 +230,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
     <div className="fixed top-[64px] left-0 right-0 z-40 bg-zinc-50 border-b border-zinc-200 print:hidden py-1 flex items-center shadow-sm min-h-[46px]">
       <div className="flex items-center w-full px-4 gap-1. 5 flex-wrap">
 
-        {/* Undo/Redo & Print/Export & Zoom */}
+        {/* Undo/Redo controls */}
         <div className="flex items-center gap-0.5">
           <ToolButton
             onClick={() => editor.chain().focus().undo().run()}
@@ -178,6 +247,7 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
             <Redo2 size={16} strokeWidth={2.5} />
           </ToolButton>
 
+          {/* Print & Export dropdown */}
           <div className="relative">
             <ToolButton
               onClick={() => setShowPrintDropdown(!showPrintDropdown)}
@@ -193,11 +263,14 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
             {showPrintDropdown && (
               <>
-                <div className="fixed inset-0 z-[100]" onClick={() => setShowPrintDropdown(false)} />
+                <div 
+                  className="fixed inset-0 z-[100]" 
+                  onClick={() => setShowPrintDropdown(false)} 
+                />
                 <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-xl border border-zinc-200 py-1 z-[101]">
-
+                  
                   <button
-                    className="w-full text-left px-4 py-2.5 hover:bg-zinc-100 flex items-center gap-3 text-sm transition-colors"
+                    className="w-full text-left px-4 py-2.5 hover:bg-zinc-100 flex items-center gap-3 text-sm"
                     onClick={handlePrint}
                     disabled={isExporting}
                   >
@@ -208,20 +281,18 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
                   <div className="border-t border-zinc-100 my-1" />
 
-
                   <button
-                    className="w-full text-left px-4 py-2.5 hover:bg-zinc-100 flex items-center gap-3 text-sm transition-colors disabled:opacity-50"
-                    onClick={handleExportPDF}
+                    className="w-full text-left px-4 py-2.5 hover:bg-zinc-100 flex items-center gap-3 text-sm disabled:opacity-50"
+                    onClick={exportPDF}
                     disabled={isExporting}
                   >
                     <FileText size={16} className="text-red-600" />
                     <span>Export as PDF</span>
                   </button>
 
-
                   <button
-                    className="w-full text-left px-4 py-2.5 hover:bg-zinc-100 flex items-center gap-3 text-sm transition-colors disabled:opacity-50"
-                    onClick={handleExportDOCX}
+                    className="w-full text-left px-4 py-2.5 hover:bg-zinc-100 flex items-center gap-3 text-sm disabled:opacity-50"
+                    onClick={exportDOCX}
                     disabled={isExporting}
                   >
                     <FileText size={16} className="text-blue-600" />
@@ -229,7 +300,6 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
                   </button>
 
                   <div className="border-t border-zinc-100 my-1" />
-
 
                   <div className="px-4 py-2.5 text-sm">
                     <div className="flex items-center gap-3 text-zinc-500">
@@ -241,7 +311,9 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
               </>
             )}
           </div>
-          <div className="flex items-center gap-1 ml-1 px-2 py-0.5 rounded-[4px] hover:bg-zinc-100 cursor-pointer text-zinc-600">
+
+          {/* Zoom control */}
+          <div className="flex items-center gap-1 ml-1 px-2 py-0.5 rounded hover:bg-zinc-100 cursor-pointer text-zinc-600">
             <select
               value={zoom}
               onChange={(e) => onZoomChange?.(Number(e.target.value))}
@@ -254,33 +326,54 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
           </div>
         </div>
 
-        <Separator />
+        <div className="h-5 w-[1px] bg-zinc-300 mx-1" />
 
-        {/* Family */}
+        {/* Text style selector (Heading 1, 2, 3, Normal) */}
         <div className="flex items-center">
-          <div className="relative group">
+          <div className="relative">
+            <select
+              value={currentTextStyle}
+              onChange={(e) => handleTextStyleChange(e.target. value)}
+              className="w-[130px] h-7 pl-2 text-sm bg-transparent hover:bg-zinc-100 rounded focus:outline-none cursor-pointer appearance-none"
+              title="Text style"
+            >
+              <option value="paragraph">Normal text</option>
+              <option value="heading-1">Heading 1</option>
+              <option value="heading-2">Heading 2</option>
+              <option value="heading-3">Heading 3</option>
+            </select>
+            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500" />
+          </div>
+        </div>
+
+        <div className="h-5 w-[1px] bg-zinc-300 mx-1" />
+
+        {/* Font family selector */}
+        <div className="flex items-center">
+          <div className="relative">
             <select
               value={currentFontFamily}
               onChange={(e) => {
-                const fam = e.target.value;
-                editor.chain().focus().setFontFamily(fam).run();
-                setCurrentFontFamily(fam);
+                editor. chain().focus().setFontFamily(e.target.value).run();
+                setCurrentFontFamily(e.target.value);
               }}
-              className="w-[110px] h-7 pl-2 text-sm bg-transparent hover:bg-zinc-100 rounded-[4px] focus:outline-none cursor-pointer appearance-none truncate"
+              className="w-[110px] h-7 pl-2 text-sm bg-transparent hover:bg-zinc-100 rounded focus:outline-none cursor-pointer appearance-none"
               title="Font family"
             >
-              {FONT_FAMILIES.map(f => (
-                <option key={f.value} value={f.value} style={{ fontFamily: f.value }}>{f.label}</option>
+              {FONT_FAMILIES. map(f => (
+                <option key={f. value} value={f.value} style={{ fontFamily: f.value }}>
+                  {f.label}
+                </option>
               ))}
             </select>
             <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500" />
           </div>
         </div>
 
-        <Separator />
+        <div className="h-5 w-[1px] bg-zinc-300 mx-1" />
 
-        {/* font size */}
-        <div className="flex items-center gap-1 ml-1 px-2 py-0.5 rounded-[4px] hover:bg-zinc-100 cursor-pointer text-zinc-600">
+        {/* Font size selector */}
+        <div className="flex items-center gap-1 ml-1 px-2 py-0.5 rounded hover:bg-zinc-100 cursor-pointer text-zinc-600">
           <select
             value={currentFontSize}
             onChange={(e) => handleFontSizeChange(e.target.value)}
@@ -294,9 +387,9 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
           <ChevronDown size={12} className="-ml-3 pointer-events-none text-zinc-500" />
         </div>
 
-        <Separator />
+        <div className="h-5 w-[1px] bg-zinc-300 mx-1" />
 
-        {/* Formatting */}
+        {/* Text formatting buttons */}
         <div className="flex items-center gap-0.5">
           <ToolButton
             onClick={() => editor.chain().focus().toggleBold().run()}
@@ -336,11 +429,9 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
 
           <div className="w-[1px] h-5 bg-zinc-200 mx-0.5" />
 
-          <ToolButton
-            onClick={() => { }}
-            title="Text color"
-          >
-            <div className="relative flex flex-col items-center justify-center">
+          {/* Color picker */}
+          <ToolButton onClick={() => {}} title="Text color">
+            <div className="relative flex flex-col items-center">
               <Baseline size={16} strokeWidth={2.5} />
               <div className="h-[3px] w-3 bg-black mt-[1px] rounded-full" />
               <input
@@ -352,9 +443,9 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
           </ToolButton>
         </div>
 
-        <Separator />
+        <div className="h-5 w-[1px] bg-zinc-300 mx-1" />
 
-        {/* Aligning */}
+        {/* Text alignment buttons */}
         <div className="flex items-center gap-0.5">
           <ToolButton
             onClick={() => editor.chain().focus().setTextAlign('left').run()}
@@ -386,9 +477,9 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
           </ToolButton>
         </div>
 
-        <Separator />
+        <div className="h-5 w-[1px] bg-zinc-300 mx-1" />
 
-        {/* list */}
+        {/* List buttons */}
         <div className="flex items-center gap-0.5">
           <ToolButton
             onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -406,9 +497,9 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
           </ToolButton>
         </div>
 
-        <Separator />
+        <div className="h-5 w-[1px] bg-zinc-300 mx-1" />
 
-        {/*table */}
+        {/* Table insert button */}
         <div className="flex items-center">
           <ToolButton
             onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
@@ -418,8 +509,9 @@ export function Toolbar({ editor, zoom = 100, onZoomChange }: ToolbarProps) {
           </ToolButton>
         </div>
 
-        <Separator />
+        <div className="h-5 w-[1px] bg-zinc-300 mx-1" />
 
+        {/* Clear formatting button */}
         <div className="flex items-center">
           <ToolButton
             onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}

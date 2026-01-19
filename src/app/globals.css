@@ -345,3 +345,162 @@ mark {
   border-right: 0 !important;
 }
 
+@media print {
+  /* A4 page setup */
+  @page {
+    size: A4 portrait;
+    margin: 25. 4mm; /* 1 inch margins - let BROWSER handle this */
+  }
+
+  /* Reset body */
+  body {
+    background:  white !important;
+    margin:  0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide UI */
+  header,
+  nav,
+  button,
+  .print\:hidden,
+  [class*="toolbar"],
+  [class*="sidebar"] {
+    display: none ! important;
+  }
+
+  /* CRITICAL: Let containers flow naturally - NO height constraints */
+  .editor-container,
+  #editor,
+  #printableArea,
+  .rm-with-pagination {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+    position: static !important;
+    overflow: visible !important;
+  }
+
+  /* Content area - REMOVE padding (let @page margins handle it) */
+  .tiptap.ProseMirror {
+    display: block !important;
+    width: 100% !important;
+    max-width: 210mm !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 auto !important;
+    padding: 0 !important; /* ✅ CRITICAL: Remove padding, @page margins handle it */
+    box-sizing: border-box !important;
+    font-family: "Georgia", "Times New Roman", serif !important;
+    font-size: 12pt !important;
+    line-height: 1.6 !important;
+    color: #000 !important;
+    background: white !important;
+    overflow: visible !important;
+  }
+
+  /* Remove ALL shadows and unwanted borders */
+  * {
+    box-shadow: none !important;
+    outline: none !important;
+  }
+
+  /* Hide pagination artifacts */
+  .page-break-widget,
+  .page-break-gap,
+  .page-break-footer,
+  .page-break-header,
+  .rm-pagination-gap,
+  .rm-page-footer,
+  .rm-page-header,
+  .page-number,
+  .custom-page-number,
+  .final-page-footer,
+  [class*="page-break"],
+  [class*="rm-page"] {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 ! important;
+    padding: 0 !important;
+    visibility:  hidden !important;
+  }
+
+  /* Page break controls - ALLOW breaking */
+  .ProseMirror h1,
+  .ProseMirror h2,
+  .ProseMirror h3 {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  .ProseMirror p {
+    page-break-inside: auto !important; /* ✅ Allow paragraphs to break if needed */
+    break-inside:  auto !important;
+  }
+
+  .ProseMirror ul,
+  .ProseMirror ol {
+    page-break-inside:  auto !important; /* ✅ Allow lists to break */
+    break-inside: auto !important;
+  }
+
+  .ProseMirror li {
+    page-break-inside: avoid !important; /* Keep individual items together */
+    break-inside: avoid !important;
+  }
+
+  ul[data-type="taskList"] {
+    page-break-inside:  auto !important;
+    break-inside: auto ! important;
+  }
+
+  /* Tables */
+  .ProseMirror table {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  .ProseMirror td,
+  .ProseMirror th {
+    border: 1px solid #e5e7eb !important;
+  }
+
+  /* Blockquotes */
+  .ProseMirror blockquote {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Code blocks */
+  .ProseMirror pre {
+    page-break-inside: avoid !important;
+    break-inside: avoid ! important;
+  }
+
+  /* Preserve colors */
+  .ProseMirror * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust:  exact !important;
+  }
+
+  /* Links */
+  .ProseMirror a {
+    color: #1d4ed8 !important;
+    text-decoration: underline !important;
+  }
+
+  /* Force visibility */
+  .ProseMirror,
+  .ProseMirror * {
+    overflow: visible !important;
+  }
+}
