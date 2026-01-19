@@ -2,7 +2,7 @@
 
 A Tiptap-based rich text editor with Google Docs-style pagination for legal document drafting with WYSIWYG print accuracy.
 
-![Live Demo](https://doc-flow-editor.vercel.app/) ![Next.js](https://img.shields.io/badge/Next.js-16.1.1-black) ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue) ![Tiptap](https://img.shields.io/badge/Tiptap-2.8.0-purple)
+![Live Demo](https://img.shields.io/badge/demo-live-success) ![Next.js](https://img.shields.io/badge/Next.js-16.1.1-black) ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue) ![Tiptap](https://img.shields.io/badge/Tiptap-2.8.0-purple)
 
 **Internship Assignment:** OpenSphere/LegalBridge
 
