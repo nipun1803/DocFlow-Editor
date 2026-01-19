@@ -257,44 +257,7 @@ editor?.on('update', debouncedRecalculate);
 | **LocalStorage limited to ~5MB** | Can't store very large documents | Suggest users export periodically |
 | **Print preview ≠ actual print** | Some browsers render print differently | Test with physical printer |
 
----
-
-## 💡 Interview Talking Points
-
-### What was your biggest challenge?
-
-"The core challenge was ensuring on-screen page breaks matched printed output exactly. I initially considered three approaches:
-
-1. **Multiple editors per page** - But this breaks text selection and copy-paste, which is unacceptable for a legal document editor.
-2. **Insert break nodes into the document** - This caused infinite recalculation loops and polluted the document model.
-3. **Estimate height by character count** - Only 60-70% accurate and fails with mixed content (images, tables, etc.).
-
-I settled on **real DOM measurement with decorations**. Instead of estimating, I let the browser calculate the actual layout using `getBoundingClientRect()`, then insert visual-only decorations (not actual nodes) at page boundaries. This preserves document integrity while achieving 95%+ accuracy."
-
-### How did you handle performance?
-
-"Recalculating on every keystroke causes 60+ browser reflows per second. I implemented **debounced recalculation with 100ms delays** - the same strategy Google Docs uses. Users don't perceive the 100ms delay, but the performance gain is massive. I also used CSS transforms for zoom instead of resizing the editor, which avoids layout recalculation entirely."
-
-### Why is accuracy more important than speed?
-
-"For legal documents, a 2mm margin error could change the entire page layout when printed. Users would catch a formatting issue during export, wasting time and risking document rejection. I prioritized **accuracy over speed** - 100ms accurate updates beat instant but wrong results. I measured this decision against legal document requirements, not just raw performance metrics."
-
-### What did you learn about ProseMirror?
-
-"Tiptap abstracts a lot of ProseMirror complexity, but understanding **decorations vs node views** was crucial. Decorations are visual-only overlays that don't affect the document model or undo/redo. Node views actually render content differently, which can break functionality. Using the right primitive prevented subtle bugs that would have taken days to debug."
-
-### How do you ensure print matches screen?
-
-"Two strategies:
-
-1. **CSS media queries with triple-override** - I use `display: none`, `height: 0`, and `visibility: hidden` together. Browsers are inconsistent with print, so one property isn't enough.
-2. **Browser calculations** - I don't estimate margins or fonts. Instead, I rely on the browser's native layout engine via `getBoundingClientRect()`, which guarantees accuracy."
-
-### Why client-side export instead of a server?
-
-"Privacy + cost. Legal documents are sensitive - users expect them to never leave their browser. Server-side export would require infrastructure, authentication, and database storage. Client-side PDF/DOCX generation with `html2canvas` and the `docx` library is slower, but users get instant results without uploading."
-
----
+--
 
 ## 🚀 Future Improvements
 
